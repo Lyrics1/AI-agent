@@ -1,0 +1,973 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>笨蛋天使实习手册 — 全部资源在线预览</title>
+<style>
+:root {
+  --bg: #0a0a1a;
+  --bg2: #12122a;
+  --bg3: #1a1a3a;
+  --card: #16163a;
+  --border: #2a2a5a;
+  --primary: #6C5CE7;
+  --primary-light: #A29BFE;
+  --accent: #FFD700;
+  --accent2: #FF6B6B;
+  --accent3: #4ECDC4;
+  --accent4: #FF9FF3;
+  --text: #FFFFFE;
+  --text2: #B0B0D0;
+  --text3: #707090;
+  --success: #00B894;
+}
+* { margin:0; padding:0; box-sizing:border-box; }
+html { scroll-behavior: smooth; }
+body {
+  font-family: -apple-system, 'PingFang SC', 'Noto Sans SC', sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  line-height: 1.6;
+}
+
+/* 导航 */
+.topnav {
+  position: fixed; top:0; left:0; right:0; z-index:100;
+  background: rgba(10,10,26,0.92);
+  backdrop-filter: blur(16px);
+  border-bottom: 1px solid var(--border);
+  display: grid;
+  grid-template-columns: 1fr auto 1fr;
+  align-items: center;
+  padding: 0.6rem 1.5rem;
+  gap: 1rem;
+}
+.topnav .logo {
+  font-weight: 900; font-size: 1rem;
+  background: linear-gradient(135deg, #6C5CE7, #FFD700);
+  -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+  justify-self: start;
+}
+.topnav .tabs {
+  display: flex; gap: 0.4rem;
+  justify-self: center;
+  background: rgba(22, 22, 58, 0.6);
+  padding: 0.35rem;
+  border-radius: 12px;
+  border: 1px solid var(--border);
+}
+.topnav .tabs button {
+  background: transparent; border: 1px solid transparent;
+  color: var(--text2); padding: 0.45rem 1.1rem; border-radius: 8px;
+  font-size: 0.85rem; font-weight: 600; cursor: pointer; transition: all 0.2s;
+}
+.topnav .tabs button:hover {
+  background: rgba(108, 92, 231, 0.15);
+  color: var(--text);
+}
+.topnav .tabs button.active {
+  background: linear-gradient(135deg, var(--primary), var(--primary-light));
+  color: #fff;
+  box-shadow: 0 2px 10px rgba(108, 92, 231, 0.4);
+}
+.topnav .nav-spacer { justify-self: end; }
+
+/* Hero */
+.hero {
+  padding: 5rem 2rem 2rem;
+  text-align: center;
+  background: radial-gradient(ellipse at 30% 50%, rgba(108,92,231,0.1) 0%, transparent 50%),
+              radial-gradient(ellipse at 70% 50%, rgba(255,215,0,0.06) 0%, transparent 50%);
+}
+.hero h1 {
+  font-size: clamp(1.8rem, 4vw, 2.8rem);
+  font-weight: 900;
+  background: linear-gradient(135deg, #6C5CE7, #A29BFE, #FFD700);
+  -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+  margin-bottom: 0.3rem;
+}
+.hero p { color: var(--text2); font-size: 0.95rem; }
+.hero .stats {
+  display: flex; gap: 2rem; justify-content: center; margin-top: 1.2rem; flex-wrap: wrap;
+}
+.hero .stat-item { text-align: center; }
+.hero .stat-num {
+  font-size: 1.6rem; font-weight: 900;
+  background: linear-gradient(135deg, #FF6B6B, #4ECDC4);
+  -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+}
+.hero .stat-label { font-size: 0.75rem; color: var(--text3); }
+
+/* 内容区 */
+.container { max-width: 1200px; margin: 0 auto; padding: 0 1.5rem; }
+.content-section { display: none; padding-top: 1rem; padding-bottom: 3rem; }
+.content-section.active { display: block; }
+
+/* 剧集标题 */
+.ep-title {
+  font-size: 1.4rem; font-weight: 800; margin: 2rem 0 0.3rem;
+  padding-left: 0.8rem;
+  border-left: 4px solid var(--primary);
+}
+.ep-subtitle { color: var(--text2); font-size: 0.88rem; margin-bottom: 1.2rem; padding-left: 0.8rem; }
+.ep-quote {
+  font-style: italic; color: var(--accent); font-size: 0.9rem;
+  margin-bottom: 1.5rem; padding-left: 1.2rem;
+  border-left: 3px solid var(--accent);
+}
+
+/* 视频网格 */
+.video-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(340px, 1fr));
+  gap: 1rem;
+  margin-bottom: 2rem;
+}
+.video-card {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  overflow: hidden;
+  transition: all 0.25s;
+}
+.video-card:hover {
+  border-color: var(--primary);
+  box-shadow: 0 8px 30px rgba(108,92,231,0.15);
+  transform: translateY(-2px);
+}
+.video-card video {
+  width: 100%;
+  aspect-ratio: 16/9;
+  background: #000;
+  display: block;
+}
+.video-card .info {
+  padding: 0.7rem 0.9rem;
+}
+.video-card .shot-id {
+  font-size: 0.7rem; font-weight: 700;
+  color: var(--primary-light);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+.video-card .shot-name {
+  font-size: 0.88rem; font-weight: 600;
+  margin-top: 0.15rem;
+  color: var(--text);
+  line-height: 1.4;
+}
+.video-card .shot-status {
+  display: inline-block;
+  margin-top: 0.3rem;
+  padding: 0.15rem 0.5rem;
+  border-radius: 4px;
+  font-size: 0.65rem;
+  font-weight: 700;
+  background: rgba(0,184,148,0.15);
+  color: var(--success);
+}
+
+/* 角色网格 */
+.char-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  gap: 1rem;
+  margin-bottom: 2rem;
+}
+.char-card {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  overflow: hidden;
+  transition: all 0.25s;
+  cursor: pointer;
+}
+.char-card:hover {
+  border-color: var(--accent);
+  transform: translateY(-3px);
+  box-shadow: 0 8px 30px rgba(255,215,0,0.1);
+}
+.char-card img {
+  width: 100%;
+  aspect-ratio: 9/16;
+  object-fit: cover;
+  display: block;
+  background: #fff;
+}
+.char-card .char-info {
+  padding: 0.6rem 0.8rem;
+  text-align: center;
+}
+.char-card .char-name {
+  font-size: 1rem; font-weight: 800;
+}
+.char-card .char-role {
+  font-size: 0.75rem; color: var(--text2); margin-top: 0.1rem;
+}
+
+/* 尾帧网格 */
+.tail-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 0.8rem;
+  margin-bottom: 2rem;
+}
+.tail-card {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  overflow: hidden;
+  transition: all 0.2s;
+}
+.tail-card:hover {
+  border-color: var(--accent3);
+  transform: translateY(-2px);
+}
+.tail-card img {
+  width: 100%;
+  aspect-ratio: 16/9;
+  object-fit: cover;
+  display: block;
+  background: #111;
+}
+.tail-card .tail-info {
+  padding: 0.5rem 0.7rem;
+  display: flex; justify-content: space-between; align-items: center;
+}
+.tail-card .tail-id {
+  font-size: 0.78rem; font-weight: 700; color: var(--accent3);
+}
+.tail-card .tail-date {
+  font-size: 0.68rem; color: var(--text3);
+}
+
+/* 图片灯箱 */
+.lightbox {
+  display: none;
+  position: fixed; top:0; left:0; right:0; bottom:0;
+  z-index: 200;
+  background: rgba(0,0,0,0.92);
+  justify-content: center; align-items: center;
+  cursor: zoom-out;
+}
+.lightbox.show { display: flex; }
+.lightbox img {
+  max-width: 90vw; max-height: 90vh;
+  border-radius: 8px;
+  box-shadow: 0 0 60px rgba(108,92,231,0.3);
+}
+.lightbox .close-btn {
+  position: absolute; top: 1rem; right: 1.5rem;
+  background: none; border: none; color: #fff;
+  font-size: 2rem; cursor: pointer; opacity: 0.7;
+}
+.lightbox .close-btn:hover { opacity: 1; }
+
+/* 搜索 */
+.search-bar {
+  display: flex; gap: 0.5rem; margin-bottom: 1.2rem; flex-wrap: wrap;
+}
+.search-bar input {
+  flex: 1; min-width: 200px;
+  background: var(--bg3); border: 1px solid var(--border);
+  color: var(--text); padding: 0.5rem 1rem;
+  border-radius: 10px; font-size: 0.85rem;
+  outline: none;
+}
+.search-bar input:focus { border-color: var(--primary); }
+.search-bar input::placeholder { color: var(--text3); }
+
+/* 统计条 */
+.stat-bar {
+  display: flex; gap: 1rem; margin-bottom: 1rem; flex-wrap: wrap;
+}
+.stat-badge {
+  padding: 0.3rem 0.8rem; border-radius: 8px;
+  font-size: 0.78rem; font-weight: 600;
+}
+
+/* Footer */
+footer {
+  text-align: center; padding: 2rem;
+  color: var(--text3); font-size: 0.78rem;
+  border-top: 1px solid var(--border);
+}
+
+/* 响应式 */
+@media (max-width: 768px) {
+  .topnav {
+    grid-template-columns: 1fr;
+    gap: 0.5rem;
+    padding: 0.5rem 1rem;
+  }
+  .topnav .logo { justify-self: center; font-size: 0.9rem; }
+  .topnav .nav-spacer { display: none; }
+  .topnav .tabs button { padding: 0.35rem 0.7rem; font-size: 0.75rem; }
+  .hero { padding-top: 7rem; }
+  .video-grid { grid-template-columns: 1fr; }
+  .char-grid { grid-template-columns: repeat(2, 1fr); }
+  .tail-grid { grid-template-columns: 1fr; }
+  .hero .stats { gap: 1rem; }
+}
+@media (max-width: 480px) {
+  .char-grid { grid-template-columns: repeat(2, 1fr); }
+  .topnav .tabs { gap: 0.2rem; padding: 0.25rem; }
+  .topnav .tabs button { padding: 0.3rem 0.5rem; font-size: 0.7rem; }
+}
+</style>
+</head>
+<body>
+
+<!-- 导航 -->
+<nav class="topnav">
+  <div class="logo">🪽 笨蛋天使实习手册</div>
+  <div class="tabs">
+    <button class="active" onclick="switchTab('ep1')">第一集</button>
+    <button onclick="switchTab('ep2')">第二集</button>
+    <button onclick="switchTab('ep3')">第三集</button>
+    <button onclick="switchTab('chars')">角色图</button>
+    <button onclick="switchTab('tails')">尾帧</button>
+  </div>
+  <div class="nav-spacer"></div>
+</nav>
+
+<!-- Hero -->
+<div class="hero">
+  <h1>笨蛋天使实习手册</h1>
+  <p>错的奇迹反而对了 — 全部资源在线预览</p>
+  <div class="stats">
+    <div class="stat-item"><div class="stat-num">3</div><div class="stat-label">集数</div></div>
+    <div class="stat-item"><div class="stat-num">79</div><div class="stat-label">镜头</div></div>
+    <div class="stat-item"><div class="stat-num">17</div><div class="stat-label">角色</div></div>
+    <div class="stat-item"><div class="stat-num">81+</div><div class="stat-label">视频</div></div>
+  </div>
+</div>
+
+<div class="container">
+
+<!-- ==================== 第一集 ==================== -->
+<div id="tab-ep1" class="content-section active">
+  <div class="ep-title">第一集：心想事成的反义词</div>
+  <div class="ep-subtitle">18 个镜头 · 全部已完成</div>
+  <div class="ep-quote">"走偏的路，也许刚好是捷径。"</div>
+
+  <div class="search-bar">
+    <input type="text" placeholder="🔍 搜索镜头（ID 或场景名）..." oninput="filterVideos('ep1', this.value)">
+  </div>
+  <div class="video-grid" id="grid-ep1">
+    <div class="video-card" data-search="S01-A1 天使界办公室 莉莉立誓">
+      <video controls preload="none" poster="">
+<source data-src="https://nova.file.video.qpic.cn/cms_ai_video/830522840/cgt-20260418164827-d6fzm.mp4" type="video/mp4">
+      </video>
+      <div class="info">
+        <div class="shot-id">S01-A1</div>
+        <div class="shot-name">天使界办公室 — 莉莉立誓</div>
+        <span class="shot-status">✅ completed</span>
+      </div>
+    </div>
+    <div class="video-card" data-search="S01-A2 天使界办公室 加百列走过 光环歪了">
+      <video controls preload="none">
+        <source data-src="https://nova.file.video.qpic.cn/cms_ai_video/830522840/cgt-20260418170721-mwtlg.mp4" type="video/mp4">
+      </video>
+      <div class="info">
+        <div class="shot-id">S01-A2</div>
+        <div class="shot-name">天使界办公室 — 加百列走过+光环歪了</div>
+        <span class="shot-status">✅ completed</span>
+      </div>
+    </div>
+    <div class="video-card" data-search="S01-A3 天使界办公室 莉莉兴奋出发 加百列自语">
+      <video controls preload="none">
+        <source data-src="https://nova.file.video.qpic.cn/cms_ai_video/830522840/cgt-20260418172137-lz926.mp4" type="video/mp4">
+      </video>
+      <div class="info">
+        <div class="shot-id">S01-A3</div>
+        <div class="shot-name">天使界办公室 — 莉莉兴奋出发+加百列自语</div>
+        <span class="shot-status">✅ completed</span>
+      </div>
+    </div>
+    <div class="video-card" data-search="S02-A 周记便利店门口 莉莉脸先着地">
+      <video controls preload="none">
+        <source data-src="https://nova.file.video.qpic.cn/cms_ai_video/830522840/cgt-20260418182900-s5czn.mp4" type="video/mp4">
+      </video>
+      <div class="info">
+        <div class="shot-id">S02-A</div>
+        <div class="shot-name">周记便利店门口 — 莉莉脸先着地</div>
+        <span class="shot-status">✅ completed</span>
+      </div>
+    </div>
+    <div class="video-card" data-search="S03-A1 便利店内部 老周淡定 莉莉震惊">
+      <video controls preload="none">
+        <source data-src="https://nova.file.video.qpic.cn/cms_ai_video/830522840/cgt-20260418193604-h2cv9.mp4" type="video/mp4">
+      </video>
+      <div class="info">
+        <div class="shot-id">S03-A1</div>
+        <div class="shot-name">便利店内部 — 老周淡定+莉莉震惊</div>
+        <span class="shot-status">✅ completed</span>
+      </div>
+    </div>
+    <div class="video-card" data-search="S03-A2 便利店内部 老周说出苏果 莉莉确认愿望">
+      <video controls preload="none">
+        <source data-src="https://nova.file.video.qpic.cn/cms_ai_video/830522840/cgt-20260418203511-6t7t6.mp4" type="video/mp4">
+      </video>
+      <div class="info">
+        <div class="shot-id">S03-A2</div>
+        <div class="shot-name">便利店内部 — 老周说出苏果+莉莉确认愿望</div>
+        <span class="shot-status">✅ completed</span>
+      </div>
+    </div>
+    <div class="video-card" data-search="S04-A1 便利店内部 苏果自言自语 莉莉施法">
+      <video controls preload="none">
+        <source data-src="https://nova.file.video.qpic.cn/cms_ai_video/830522840/cgt-20260418204751-tgwrv.mp4" type="video/mp4">
+      </video>
+      <div class="info">
+        <div class="shot-id">S04-A1</div>
+        <div class="shot-name">便利店内部 — 苏果自言自语+莉莉施法</div>
+        <span class="shot-status">✅ completed</span>
+      </div>
+    </div>
+    <div class="video-card" data-search="S04-A2 便利店内部 方便面告白翻车">
+      <video controls preload="none">
+        <source data-src="https://nova.file.video.qpic.cn/cms_ai_video/830522840/cgt-20260418212551-cz7w6.mp4" type="video/mp4">
+      </video>
+      <div class="info">
+        <div class="shot-id">S04-A2</div>
+        <div class="shot-name">便利店内部 — 方便面告白翻车</div>
+        <span class="shot-status">✅ completed</span>
+      </div>
+    </div>
+    <div class="video-card" data-search="S05-A1 便利店门口 苏果狂奔 撞见小黑">
+      <video controls preload="none">
+        <source data-src="https://nova.file.video.qpic.cn/cms_ai_video/830522840/cgt-20260418213735-bhq2g.mp4" type="video/mp4">
+      </video>
+      <div class="info">
+        <div class="shot-id">S05-A1</div>
+        <div class="shot-name">便利店门口 — 苏果狂奔+撞见小黑</div>
+        <span class="shot-status">✅ completed</span>
+      </div>
+    </div>
+    <div class="video-card" data-search="S05-A2 巷子拐角 小黑改字 苏果释然">
+      <video controls preload="none">
+        <source data-src="https://nova.file.video.qpic.cn/cms_ai_video/830522840/cgt-20260418214849-mttpr.mp4" type="video/mp4">
+      </video>
+      <div class="info">
+        <div class="shot-id">S05-A2</div>
+        <div class="shot-name">巷子拐角 — 小黑改字+苏果释然</div>
+        <span class="shot-status">✅ completed</span>
+      </div>
+    </div>
+    <div class="video-card" data-search="S05-B 巷子拐角 莉莉追到 阿圆安慰">
+      <video controls preload="none">
+        <source data-src="https://nova.file.video.qpic.cn/cms_ai_video/830522840/cgt-20260418223043-c6sx7.mp4" type="video/mp4">
+      </video>
+      <div class="info">
+        <div class="shot-id">S05-B</div>
+        <div class="shot-name">巷子拐角 — 莉莉追到+阿圆安慰</div>
+        <span class="shot-status">✅ completed</span>
+      </div>
+    </div>
+    <div class="video-card" data-search="S06-A1 便利店内部夜晚 苏果沮丧 莉莉自责">
+      <video controls preload="none">
+        <source data-src="https://nova.file.video.qpic.cn/cms_ai_video/830522840/cgt-20260418224954-r6j8l.mp4" type="video/mp4">
+      </video>
+      <div class="info">
+        <div class="shot-id">S06-A1</div>
+        <div class="shot-name">便利店内部夜晚 — 苏果沮丧+莉莉自责</div>
+        <span class="shot-status">✅ completed</span>
+      </div>
+    </div>
+    <div class="video-card" data-search="S06-A2 便利店内部夜晚 老周点醒苏果">
+      <video controls preload="none">
+        <source data-src="https://nova.file.video.qpic.cn/cms_ai_video/830522840/cgt-20260418235759-t7k5f.mp4" type="video/mp4">
+      </video>
+      <div class="info">
+        <div class="shot-id">S06-A2</div>
+        <div class="shot-name">便利店内部夜晚 — 老周点醒苏果</div>
+        <span class="shot-status">✅ completed</span>
+      </div>
+    </div>
+    <div class="video-card" data-search="S06-A3 便利店内部夜晚 莉莉发现真心愿">
+      <video controls preload="none">
+        <source data-src="https://nova.file.video.qpic.cn/cms_ai_video/830522840/cgt-20260419001445-8fkpw.mp4" type="video/mp4">
+      </video>
+      <div class="info">
+        <div class="shot-id">S06-A3</div>
+        <div class="shot-name">便利店内部夜晚 — 莉莉发现真心愿</div>
+        <span class="shot-status">✅ completed</span>
+      </div>
+    </div>
+    <div class="video-card" data-search="S07-A1 便利店门口深夜 苏果走向咖啡店">
+      <video controls preload="none">
+        <source data-src="https://nova.file.video.qpic.cn/cms_ai_video/830522840/cgt-20260419005304-gcf6f.mp4" type="video/mp4">
+      </video>
+      <div class="info">
+        <div class="shot-id">S07-A1</div>
+        <div class="shot-name">便利店门口深夜 — 苏果走向咖啡店</div>
+        <span class="shot-status">✅ completed</span>
+      </div>
+    </div>
+    <div class="video-card" data-search="S07-A2 远处楼顶 加百列合上处分报告">
+      <video controls preload="none">
+        <source data-src="https://nova.file.video.qpic.cn/cms_ai_video/830522840/cgt-20260419010504-6nt9h.mp4" type="video/mp4">
+      </video>
+      <div class="info">
+        <div class="shot-id">S07-A2</div>
+        <div class="shot-name">远处楼顶 — 加百列合上处分报告</div>
+        <span class="shot-status">✅ completed</span>
+      </div>
+    </div>
+    <div class="video-card" data-search="S08-A1 便利店内部深夜 莉莉领悟">
+      <video controls preload="none">
+        <source data-src="https://nova.file.video.qpic.cn/cms_ai_video/830522840/cgt-20260419011555-tnc2h.mp4" type="video/mp4">
+      </video>
+      <div class="info">
+        <div class="shot-id">S08-A1</div>
+        <div class="shot-name">便利店内部深夜 — 莉莉领悟</div>
+        <span class="shot-status">✅ completed</span>
+      </div>
+    </div>
+    <div class="video-card" data-search="S08-A2 便利店门口深夜尾声 小黑嘴硬 结尾">
+      <video controls preload="none">
+        <source data-src="https://nova.file.video.qpic.cn/cms_ai_video/830522840/cgt-20260419014955-jfftg.mp4" type="video/mp4">
+      </video>
+      <div class="info">
+        <div class="shot-id">S08-A2</div>
+        <div class="shot-name">便利店门口深夜尾声 — 小黑嘴硬+结尾</div>
+        <span class="shot-status">✅ completed</span>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ==================== 第二集 ==================== -->
+<div id="tab-ep2" class="content-section">
+  <div class="ep-title">第二集：好运是倒霉的伪装</div>
+  <div class="ep-subtitle">28 个镜头 · 全部已完成</div>
+  <div class="ep-quote">"摔跤的时候，看看地上有没有钱。"</div>
+
+  <div class="search-bar">
+    <input type="text" placeholder="🔍 搜索镜头..." oninput="filterVideos('ep2', this.value)">
+  </div>
+  <div class="video-grid" id="grid-ep2">
+    <div class="video-card" data-search="S01-A1 城市街巷清晨 倒霉蒙太奇 出门">
+      <video controls preload="none"><source data-src="https://nova.file.video.qpic.cn/cms_ai_video/830522840/cgt-20260419033021-nrbmn.mp4" type="video/mp4"></video>
+      <div class="info"><div class="shot-id">S01-A1</div><div class="shot-name">城市街巷清晨 — 倒霉蒙太奇·出门</div><span class="shot-status">✅ completed</span></div>
+    </div>
+    <div class="video-card" data-search="S01-A2 周记便利店清晨 老周安慰">
+      <video controls preload="none"><source data-src="https://nova.file.video.qpic.cn/cms_ai_video/830522840/cgt-20260419133146-vf8mc.mp4" type="video/mp4"></video>
+      <div class="info"><div class="shot-id">S01-A2</div><div class="shot-name">周记便利店清晨 — 老周安慰</div><span class="shot-status">✅ completed</span></div>
+    </div>
+    <div class="video-card" data-search="S01-A2b 周记便利店 许愿与莉莉冒汗">
+      <video controls preload="none"><source data-src="https://nova.file.video.qpic.cn/cms_ai_video/830522840/cgt-20260419135436-kkf6b.mp4" type="video/mp4"></video>
+      <div class="info"><div class="shot-id">S01-A2b</div><div class="shot-name">周记便利店 — 许愿与莉莉冒汗</div><span class="shot-status">✅ completed</span></div>
+    </div>
+    <div class="video-card" data-search="S02-A1 便利店天花板 莉莉读信号手册">
+      <video controls preload="none"><source data-src="https://nova.file.video.qpic.cn/cms_ai_video/830522840/cgt-20260419140301-8tktv.mp4" type="video/mp4"></video>
+      <div class="info"><div class="shot-id">S02-A1</div><div class="shot-name">便利店天花板 — 莉莉读信号手册</div><span class="shot-status">✅ completed</span></div>
+    </div>
+    <div class="video-card" data-search="S02-A2 便利店天花板 莉莉精准命中">
+      <video controls preload="none"><source data-src="https://nova.file.video.qpic.cn/cms_ai_video/830522840/cgt-20260419144359-zrftz.mp4" type="video/mp4"></video>
+      <div class="info"><div class="shot-id">S02-A2</div><div class="shot-name">便利店天花板 — 莉莉精准命中</div><span class="shot-status">✅ completed</span></div>
+    </div>
+    <div class="video-card" data-search="S02-A2b 便利店天花板 金色星星魔法棒过载警报">
+      <video controls preload="none"><source data-src="https://nova.file.video.qpic.cn/cms_ai_video/830522840/cgt-20260419161411-6nvqj.mp4" type="video/mp4"></video>
+      <div class="info"><div class="shot-id">S02-A2b</div><div class="shot-name">便利店天花板 — 金色星星魔法棒过载警报</div><span class="shot-status">✅ completed</span></div>
+    </div>
+    <div class="video-card" data-search="S03-A1 便利店门口街道上午 好运降临 第一波">
+      <video controls preload="none"><source data-src="https://nova.file.video.qpic.cn/cms_ai_video/830522840/cgt-20260419171304-grlrn.mp4" type="video/mp4"></video>
+      <div class="info"><div class="shot-id">S03-A1</div><div class="shot-name">便利店门口/街道上午 — 好运降临·第一波</div><span class="shot-status">✅ completed</span></div>
+    </div>
+    <div class="video-card" data-search="S03-A1b 街道公司门口上午 好运降临 第二波">
+      <video controls preload="none"><source data-src="https://nova.file.video.qpic.cn/cms_ai_video/830522840/cgt-20260419182454-mmwvn.mp4" type="video/mp4"></video>
+      <div class="info"><div class="shot-id">S03-A1b</div><div class="shot-name">街道/公司门口上午 — 好运降临·第二波</div><span class="shot-status">✅ completed</span></div>
+    </div>
+    <div class="video-card" data-search="S03-A1c 甜品店上午 好运降临 第三波 莉莉得意">
+      <video controls preload="none"><source data-src="https://nova.file.video.qpic.cn/cms_ai_video/830522840/cgt-20260420185506-dkw6q.mp4" type="video/mp4"></video>
+      <div class="info"><div class="shot-id">S03-A1c</div><div class="shot-name">甜品店上午 — 好运降临·第三波+莉莉得意</div><span class="shot-status">✅ completed</span></div>
+    </div>
+    <div class="video-card" data-search="S04-A1 城市各处中午 好运过载 失控">
+      <video controls preload="none"><source data-src="https://nova.file.video.qpic.cn/cms_ai_video/830522840/cgt-20260419185740-thdwk.mp4" type="video/mp4"></video>
+      <div class="info"><div class="shot-id">S04-A1</div><div class="shot-name">城市各处中午 — 好运过载·失控</div><span class="shot-status">✅ completed</span></div>
+    </div>
+    <div class="video-card" data-search="S04-A2 便利店内部中午 陆小满崩溃 莉莉慌了">
+      <video controls preload="none"><source data-src="https://nova.file.video.qpic.cn/cms_ai_video/830522840/cgt-20260419211606-sxhsb.mp4" type="video/mp4"></video>
+      <div class="info"><div class="shot-id">S04-A2</div><div class="shot-name">便利店内部中午 — 陆小满崩溃+莉莉慌了</div><span class="shot-status">✅ completed</span></div>
+    </div>
+    <div class="video-card" data-search="S04-A3 便利店内部中午 好运选择菜单出现">
+      <video controls preload="none"><source data-src="https://nova.file.video.qpic.cn/cms_ai_video/830522840/cgt-20260419232252-v8csk.mp4" type="video/mp4"></video>
+      <div class="info"><div class="shot-id">S04-A3</div><div class="shot-name">便利店内部中午 — 好运选择菜单出现</div><span class="shot-status">✅ completed</span></div>
+    </div>
+    <div class="video-card" data-search="S05-A1 便利店内部下午 加百列现身干预">
+      <video controls preload="none"><source data-src="https://nova.file.video.qpic.cn/cms_ai_video/830522840/cgt-20260419233920-hwwqq.mp4" type="video/mp4"></video>
+      <div class="info"><div class="shot-id">S05-A1</div><div class="shot-name">便利店内部下午 — 加百列现身干预</div><span class="shot-status">✅ completed</span></div>
+    </div>
+    <div class="video-card" data-search="S05-A2 天使空间 加百列训话开场">
+      <video controls preload="none"><source data-src="https://nova.file.video.qpic.cn/cms_ai_video/830522840/cgt-20260420005631-cflqp.mp4" type="video/mp4"></video>
+      <div class="info"><div class="shot-id">S05-A2</div><div class="shot-name">天使空间 — 加百列训话开场</div><span class="shot-status">✅ completed</span></div>
+    </div>
+    <div class="video-card" data-search="S05-A2b 天使空间 转折与嘱托">
+      <video controls preload="none"><source data-src="https://nova.file.video.qpic.cn/cms_ai_video/830522840/cgt-20260420010722-dpmzw.mp4" type="video/mp4"></video>
+      <div class="info"><div class="shot-id">S05-A2b</div><div class="shot-name">天使空间 — 转折与嘱托</div><span class="shot-status">✅ completed</span></div>
+    </div>
+    <div class="video-card" data-search="S05-A2c 便利店 回到人间">
+      <video controls preload="none"><source data-src="https://nova.file.video.qpic.cn/cms_ai_video/830522840/cgt-20260420011708-qjf92.mp4" type="video/mp4"></video>
+      <div class="info"><div class="shot-id">S05-A2c</div><div class="shot-name">便利店 — 回到人间</div><span class="shot-status">✅ completed</span></div>
+    </div>
+    <div class="video-card" data-search="S06-A1 夜晚街道 莉莉找到陆小满 鼓起勇气">
+      <video controls preload="none"><source data-src="https://nova.file.video.qpic.cn/cms_ai_video/830522840/cgt-20260420014550-psw95.mp4" type="video/mp4"></video>
+      <div class="info"><div class="shot-id">S06-A1</div><div class="shot-name">夜晚街道 — 莉莉找到陆小满+鼓起勇气</div><span class="shot-status">✅ completed</span></div>
+    </div>
+    <div class="video-card" data-search="S06-A1b 夜晚街道 莉莉请阿圆帮忙 阿圆变金色">
+      <video controls preload="none"><source data-src="https://nova.file.video.qpic.cn/cms_ai_video/830522840/cgt-20260420021852-k28rr.mp4" type="video/mp4"></video>
+      <div class="info"><div class="shot-id">S06-A1b</div><div class="shot-name">夜晚街道 — 莉莉请阿圆帮忙+阿圆变金色</div><span class="shot-status">✅ completed</span></div>
+    </div>
+    <div class="video-card" data-search="S06-A1c 夜晚街道 金色泡泡回忆 雨天 搬家">
+      <video controls preload="none"><source data-src="https://nova.file.video.qpic.cn/cms_ai_video/830522840/cgt-20260420100348-xgvjg.mp4" type="video/mp4"></video>
+      <div class="info"><div class="shot-id">S06-A1c</div><div class="shot-name">夜晚街道 — 金色泡泡回忆（雨天+搬家）</div><span class="shot-status">✅ completed</span></div>
+    </div>
+    <div class="video-card" data-search="S06-A1d 夜晚街道 金色泡泡回忆 踩香蕉皮 陆小满眼眶微红">
+      <video controls preload="none"><source data-src="https://nova.file.video.qpic.cn/cms_ai_video/830522840/cgt-20260420094240-ltcq5.mp4" type="video/mp4"></video>
+      <div class="info"><div class="shot-id">S06-A1d</div><div class="shot-name">夜晚街道 — 金色泡泡回忆（踩香蕉皮）+陆小满眼眶微红</div><span class="shot-status">✅ completed</span></div>
+    </div>
+    <div class="video-card" data-search="S06-A2 夜晚街道 真心愿揭晓">
+      <video controls preload="none"><source data-src="https://nova.file.video.qpic.cn/cms_ai_video/830522840/cgt-20260420115911-p4xp4.mp4" type="video/mp4"></video>
+      <div class="info"><div class="shot-id">S06-A2</div><div class="shot-name">夜晚街道 — 真心愿揭晓</div><span class="shot-status">✅ completed</span></div>
+    </div>
+    <div class="video-card" data-search="S06-A2b 夜晚街道 陆小满的选择 好运菜单碎裂">
+      <video controls preload="none"><source data-src="https://nova.file.video.qpic.cn/cms_ai_video/830522840/cgt-20260420134036-5wj2m.mp4" type="video/mp4"></video>
+      <div class="info"><div class="shot-id">S06-A2b</div><div class="shot-name">夜晚街道 — 陆小满的选择+好运菜单碎裂</div><span class="shot-status">✅ completed</span></div>
+    </div>
+    <div class="video-card" data-search="S06-A3 便利店内部门口 好运终结 加百列小黑反应">
+      <video controls preload="none"><source data-src="https://nova.file.video.qpic.cn/cms_ai_video/830522840/cgt-20260420141356-68dh8.mp4" type="video/mp4"></video>
+      <div class="info"><div class="shot-id">S06-A3</div><div class="shot-name">便利店内部+门口 — 好运终结+加百列小黑反应</div><span class="shot-status">✅ completed</span></div>
+    </div>
+    <div class="video-card" data-search="S07-A1 街道公交站早晨 雨中遇猫 彩虹">
+      <video controls preload="none"><source data-src="https://nova.file.video.qpic.cn/cms_ai_video/830522840/cgt-20260420150858-lh4hg.mp4" type="video/mp4"></video>
+      <div class="info"><div class="shot-id">S07-A1</div><div class="shot-name">街道公交站早晨 — 雨中遇猫+彩虹</div><span class="shot-status">✅ completed</span></div>
+    </div>
+    <div class="video-card" data-search="S07-A2 天使界办公室 加百列嘴硬心软1">
+      <video controls preload="none"><source data-src="https://nova.file.video.qpic.cn/cms_ai_video/830522840/cgt-20260420162253-pm475.mp4" type="video/mp4"></video>
+      <div class="info"><div class="shot-id">S07-A2</div><div class="shot-name">天使界办公室 — 加百列嘴硬心软1</div><span class="shot-status">✅ completed</span></div>
+    </div>
+    <div class="video-card" data-search="S07-A2b 天使界办公室 加百列嘴硬心软2">
+      <video controls preload="none"><source data-src="https://nova.file.video.qpic.cn/cms_ai_video/830522840/cgt-20260420163430-kqp6k.mp4" type="video/mp4"></video>
+      <div class="info"><div class="shot-id">S07-A2b</div><div class="shot-name">天使界办公室 — 加百列嘴硬心软2</div><span class="shot-status">✅ completed</span></div>
+    </div>
+    <div class="video-card" data-search="S08-A1 人间街道傍晚 小黑一句话">
+      <video controls preload="none"><source data-src="https://nova.file.video.qpic.cn/cms_ai_video/830522840/cgt-20260420172855-99wcb.mp4" type="video/mp4"></video>
+      <div class="info"><div class="shot-id">S08-A1</div><div class="shot-name">人间街道傍晚 — 小黑一句话</div><span class="shot-status">✅ completed</span></div>
+    </div>
+    <div class="video-card" data-search="S08-A2 雨天飞空彩虹 尾声">
+      <video controls preload="none"><source data-src="https://nova.file.video.qpic.cn/cms_ai_video/830522840/cgt-20260420181320-928qj.mp4" type="video/mp4"></video>
+      <div class="info"><div class="shot-id">S08-A2</div><div class="shot-name">雨天飞空彩虹 — 尾声</div><span class="shot-status">✅ completed</span></div>
+    </div>
+  </div>
+</div>
+
+<!-- ==================== 第三集 ==================== -->
+<div id="tab-ep3" class="content-section">
+  <div class="ep-title">第三集：谁需要完美的天使</div>
+  <div class="ep-subtitle">33 个镜头 · 全部已完成</div>
+  <div class="ep-quote">"有些人不需要愿望被实现，只需要有人愿意听。"</div>
+
+  <div class="search-bar">
+    <input type="text" placeholder="🔍 搜索镜头..." oninput="filterVideos('ep3', this.value)">
+  </div>
+  <div class="video-grid" id="grid-ep3">
+    <div class="video-card" data-search="S01-A1 天使界考核走廊 考核宣布"><video controls preload="none"><source data-src="https://nova.file.video.qpic.cn/cms_ai_video/830522840/cgt-20260421144542-z5qlf.mp4" type="video/mp4"></video><div class="info"><div class="shot-id">S01-A1</div><div class="shot-name">天使界·考核走廊 — 考核宣布</div><span class="shot-status">✅ completed</span></div></div>
+    <div class="video-card" data-search="S01-A2 天使界走廊 阿圆薄饼 加百利登场"><video controls preload="none"><source data-src="https://nova.file.video.qpic.cn/cms_ai_video/830522840/cgt-20260422165028-d7vpz.mp4" type="video/mp4"></video><div class="info"><div class="shot-id">S01-A2</div><div class="shot-name">天使界走廊 — 阿圆薄饼+加百利登场</div><span class="shot-status">✅ completed</span></div></div>
+    <div class="video-card" data-search="S01-A3 天使界走廊 小黑嘲讽"><video controls preload="none"><source data-src="https://nova.file.video.qpic.cn/cms_ai_video/830522840/cgt-20260421161702-2lpcr.mp4" type="video/mp4"></video><div class="info"><div class="shot-id">S01-A3</div><div class="shot-name">天使界走廊 — 小黑嘲讽</div><span class="shot-status">✅ completed</span></div></div>
+    <div class="video-card" data-search="S02-A1 虚拟训练场星河大厅 加百利带莉莉入场"><video controls preload="none"><source data-src="https://nova.file.video.qpic.cn/cms_ai_video/830522840/cgt-20260422171333-2nrjm.mp4" type="video/mp4"></video><div class="info"><div class="shot-id">S02-A1</div><div class="shot-name">虚拟训练场·星河大厅 — 加百利带莉莉入场</div><span class="shot-status">✅ completed</span></div></div>
+    <div class="video-card" data-search="S02-A2 星河大厅 加百利和审核官的旧时光"><video controls preload="none"><source data-src="https://nova.file.video.qpic.cn/cms_ai_video/830522840/cgt-20260422183852-9g7c8.mp4" type="video/mp4"></video><div class="info"><div class="shot-id">S02-A2</div><div class="shot-name">星河大厅 — 加百利和审核官的旧时光</div><span class="shot-status">✅ completed</span></div></div>
+    <div class="video-card" data-search="S03-A1 训练场第一关心愿追踪 莉莉施法翻车"><video controls preload="none"><source data-src="https://nova.file.video.qpic.cn/cms_ai_video/830522840/cgt-20260422184836-k4kns.mp4" type="video/mp4"></video><div class="info"><div class="shot-id">S03-A1</div><div class="shot-name">训练场·第一关·心愿追踪 — 莉莉施法翻车</div><span class="shot-status">✅ completed</span></div></div>
+    <div class="video-card" data-search="S03-A2 训练场第一关 司晨完美演示"><video controls preload="none"><source data-src="https://nova.file.video.qpic.cn/cms_ai_video/830522840/cgt-20260422190207-xnjzp.mp4" type="video/mp4"></video><div class="info"><div class="shot-id">S03-A2</div><div class="shot-name">训练场·第一关 — 司晨完美演示</div><span class="shot-status">✅ completed</span></div></div>
+    <div class="video-card" data-search="S03-A3 训练场休息区 莉莉和天使朋友们"><video controls preload="none"><source data-src="https://nova.file.video.qpic.cn/cms_ai_video/830522840/cgt-20260422191204-dpgrh.mp4" type="video/mp4"></video><div class="info"><div class="shot-id">S03-A3</div><div class="shot-name">训练场休息区 — 莉莉和天使朋友们</div><span class="shot-status">✅ completed</span></div></div>
+    <div class="video-card" data-search="S04-A1 训练场第二关愿望共鸣 莉莉第一次共鸣"><video controls preload="none"><source data-src="https://nova.file.video.qpic.cn/cms_ai_video/830522840/cgt-20260422194309-hfxxz.mp4" type="video/mp4"></video><div class="info"><div class="shot-id">S04-A1</div><div class="shot-name">训练场·第二关·愿望共鸣 — 莉莉第一次共鸣</div><span class="shot-status">✅ completed</span></div></div>
+    <div class="video-card" data-search="S04-A2 训练场第二关 司晨的观察"><video controls preload="none"><source data-src="https://nova.file.video.qpic.cn/cms_ai_video/830522840/cgt-20260422200146-xxf4k.mp4" type="video/mp4"></video><div class="info"><div class="shot-id">S04-A2</div><div class="shot-name">训练场·第二关 — 司晨的观察</div><span class="shot-status">✅ completed</span></div></div>
+    <div class="video-card" data-search="S05-A1 训练场第三关镜像对决 莉莉vs幻影"><video controls preload="none"><source data-src="https://nova.file.video.qpic.cn/cms_ai_video/830522840/cgt-20260422202049-2hrs7.mp4" type="video/mp4"></video><div class="info"><div class="shot-id">S05-A1</div><div class="shot-name">训练场·第三关·镜像对决 — 莉莉vs幻影</div><span class="shot-status">✅ completed</span></div></div>
+    <div class="video-card" data-search="S05-A1b 光之竞技场 莉莉下场 司晨上场"><video controls preload="none"><source data-src="https://nova.file.video.qpic.cn/cms_ai_video/830522840/cgt-20260422203119-dbgvb.mp4" type="video/mp4"></video><div class="info"><div class="shot-id">S05-A1b</div><div class="shot-name">光之竞技场 — 莉莉下场·司晨上场</div><span class="shot-status">✅ completed</span></div></div>
+    <div class="video-card" data-search="S05-A2a 光之竞技场 司晨对决幻影"><video controls preload="none"><source data-src="https://nova.file.video.qpic.cn/cms_ai_video/830522840/cgt-20260422210055-tx97b.mp4" type="video/mp4"></video><div class="info"><div class="shot-id">S05-A2a</div><div class="shot-name">光之竞技场 — 司晨对决幻影</div><span class="shot-status">✅ completed</span></div></div>
+    <div class="video-card" data-search="S05-A2b 光之竞技场 司晨的犹豫瞬间"><video controls preload="none"><source data-src="https://nova.file.video.qpic.cn/cms_ai_video/830522840/cgt-20260422210754-xtwvh.mp4" type="video/mp4"></video><div class="info"><div class="shot-id">S05-A2b</div><div class="shot-name">光之竞技场 — 司晨的犹豫瞬间</div><span class="shot-status">✅ completed</span></div></div>
+    <div class="video-card" data-search="S05-A3 光之竞技场走廊 傍晚训练结束"><video controls preload="none"><source data-src="https://nova.file.video.qpic.cn/cms_ai_video/830522840/cgt-20260422213113-77dqg.mp4" type="video/mp4"></video><div class="info"><div class="shot-id">S05-A3</div><div class="shot-name">光之竞技场→走廊 — 傍晚·训练结束</div><span class="shot-status">✅ completed</span></div></div>
+    <div class="video-card" data-search="S06-A1 训练场星空台 加百利和审核官夜谈 回忆"><video controls preload="none"><source data-src="https://nova.file.video.qpic.cn/cms_ai_video/830522840/cgt-20260422214821-c5tm8.mp4" type="video/mp4"></video><div class="info"><div class="shot-id">S06-A1</div><div class="shot-name">训练场星空台 — 加百利和审核官夜谈（回忆）</div><span class="shot-status">✅ done</span></div></div>
+    <div class="video-card" data-search="S06-A1b 训练场星空台 加百利和审核官夜谈 关于莉莉"><video controls preload="none"><source data-src="https://nova.file.video.qpic.cn/cms_ai_video/830522840/cgt-20260422225642-75hqx.mp4" type="video/mp4"></video><div class="info"><div class="shot-id">S06-A1b</div><div class="shot-name">训练场星空台 — 加百利和审核官夜谈（关于莉莉）</div><span class="shot-status">✅ done</span></div></div>
+    <div class="video-card" data-search="S06-A2 训练场星空台 躺在草地上看星星"><video controls preload="none"><source data-src="https://nova.file.video.qpic.cn/cms_ai_video/830522840/cgt-20260422235148-m7fdt.mp4" type="video/mp4"></video><div class="info"><div class="shot-id">S06-A2</div><div class="shot-name">训练场星空台 — 躺在草地上看星星</div><span class="shot-status">✅ completed</span></div></div>
+    <div class="video-card" data-search="S06-A2a 训练场星空台 星河和莉莉的答案"><video controls preload="none"><source data-src="https://nova.file.video.qpic.cn/cms_ai_video/830522840/cgt-20260423000106-brjcg.mp4" type="video/mp4"></video><div class="info"><div class="shot-id">S06-A2a</div><div class="shot-name">训练场星空台 — 星河和莉莉的答案</div><span class="shot-status">✅ completed</span></div></div>
+    <div class="video-card" data-search="S06-A2b 训练场星空台 三天的约定"><video controls preload="none"><source data-src="https://nova.file.video.qpic.cn/cms_ai_video/830522840/cgt-20260423003547-dfwph.mp4" type="video/mp4"></video><div class="info"><div class="shot-id">S06-A2b</div><div class="shot-name">训练场星空台 — 三天的约定</div><span class="shot-status">✅ completed</span></div></div>
+    <div class="video-card" data-search="S07-A1 训练场最终关人间模拟 规则宣布与许愿者"><video controls preload="none"><source data-src="https://nova.file.video.qpic.cn/cms_ai_video/830522840/cgt-20260423140732-kgj2x.mp4" type="video/mp4"></video><div class="info"><div class="shot-id">S07-A1</div><div class="shot-name">训练场·最终关·人间模拟 — 规则宣布与许愿者</div><span class="shot-status">✅ completed</span></div></div>
+    <div class="video-card" data-search="S07-A1a 训练场最终关人间模拟 进入思维空间"><video controls preload="none"><source data-src="https://nova.file.video.qpic.cn/cms_ai_video/830522840/cgt-20260423142443-gllg6.mp4" type="video/mp4"></video><div class="info"><div class="shot-id">S07-A1a</div><div class="shot-name">训练场·最终关·人间模拟 — 进入思维空间</div><span class="shot-status">✅ completed</span></div></div>
+    <div class="video-card" data-search="S07-A1b 训练场最终关人间模拟 悲伤的记忆碎片"><video controls preload="none"><source data-src="https://nova.file.video.qpic.cn/cms_ai_video/830522840/cgt-20260423145555-zhg6j.mp4" type="video/mp4"></video><div class="info"><div class="shot-id">S07-A1b</div><div class="shot-name">训练场·最终关·人间模拟 — 悲伤的记忆碎片</div><span class="shot-status">✅ completed</span></div></div>
+    <div class="video-card" data-search="S07-A1b2 训练场最终关人间模拟 越走越深的黑暗"><video controls preload="none"><source data-src="https://nova.file.video.qpic.cn/cms_ai_video/830522840/cgt-20260423150213-5n5zj.mp4" type="video/mp4"></video><div class="info"><div class="shot-id">S07-A1b2</div><div class="shot-name">训练场·最终关·人间模拟 — 越走越深的黑暗</div><span class="shot-status">✅ completed</span></div></div>
+    <div class="video-card" data-search="S07-A1c1 训练场最终关人间模拟 黑暗中的暖光"><video controls preload="none"><source data-src="https://nova.file.video.qpic.cn/cms_ai_video/830522840/cgt-20260423170334-cqrpn.mp4" type="video/mp4"></video><div class="info"><div class="shot-id">S07-A1c1</div><div class="shot-name">训练场·最终关·人间模拟 — 黑暗中的暖光</div><span class="shot-status">✅ completed</span></div></div>
+    <div class="video-card" data-search="S07-A1c2 训练场最终关人间模拟 让记忆变清晰"><video controls preload="none"><source data-src="https://nova.file.video.qpic.cn/cms_ai_video/830522840/cgt-20260423181357-5cspg.mp4" type="video/mp4"></video><div class="info"><div class="shot-id">S07-A1c2</div><div class="shot-name">训练场·最终关·人间模拟 — 让记忆变清晰</div><span class="shot-status">✅ completed</span></div></div>
+    <div class="video-card" data-search="S07-A1d 训练场最终关人间模拟 许愿者落泪与莉莉出来"><video controls preload="none"><source data-src="https://nova.file.video.qpic.cn/cms_ai_video/830522840/cgt-20260423183217-8js5v.mp4" type="video/mp4"></video><div class="info"><div class="shot-id">S07-A1d</div><div class="shot-name">训练场·最终关·人间模拟 — 许愿者落泪与莉莉出来</div><span class="shot-status">✅ completed</span></div></div>
+    <div class="video-card" data-search="S07-A1d2 训练场最终关人间模拟 加百利和审核官的反应"><video controls preload="none"><source data-src="https://nova.file.video.qpic.cn/cms_ai_video/830522840/cgt-20260423185749-lptfn.mp4" type="video/mp4"></video><div class="info"><div class="shot-id">S07-A1d2</div><div class="shot-name">训练场·最终关·人间模拟 — 加百利和审核官的反应</div><span class="shot-status">✅ completed</span></div></div>
+    <div class="video-card" data-search="S07-A1e 训练场最终关人间模拟 第二天的阳光"><video controls preload="none"><source data-src="https://nova.file.video.qpic.cn/cms_ai_video/830522840/cgt-20260423192046-wmm86.mp4" type="video/mp4"></video><div class="info"><div class="shot-id">S07-A1e</div><div class="shot-name">训练场·最终关·人间模拟 — 第二天的阳光</div><span class="shot-status">✅ completed</span></div></div>
+    <div class="video-card" data-search="S07-A2 训练场最终关 审核官盖章通过"><video controls preload="none"><source data-src="https://nova.file.video.qpic.cn/cms_ai_video/830522840/cgt-20260423193318-2vb8h.mp4" type="video/mp4"></video><div class="info"><div class="shot-id">S07-A2</div><div class="shot-name">训练场·最终关 — 审核官盖章通过</div><span class="shot-status">✅ completed</span></div></div>
+    <div class="video-card" data-search="S07-A3 星河大厅走廊 同辈庆祝"><video controls preload="none"><source data-src="https://nova.file.video.qpic.cn/cms_ai_video/830522840/cgt-20260423214930-jxxk7.mp4" type="video/mp4"></video><div class="info"><div class="shot-id">S07-A3</div><div class="shot-name">星河大厅·走廊 — 同辈庆祝</div><span class="shot-status">✅ completed</span></div></div>
+    <div class="video-card" data-search="S07-A4 星河大厅走廊窗台 莉莉和小黑"><video controls preload="none"><source data-src="https://nova.file.video.qpic.cn/cms_ai_video/830522840/cgt-20260423225901-c4gdv.mp4" type="video/mp4"></video><div class="info"><div class="shot-id">S07-A4</div><div class="shot-name">星河大厅·走廊窗台 — 莉莉和小黑</div><span class="shot-status">✅ completed</span></div></div>
+    <div class="video-card" data-search="S08-A1 人间老街小院 林奶奶和陈大明的日常"><video controls preload="none"><source data-src="https://nova.file.video.qpic.cn/cms_ai_video/830522840/cgt-20260423231115-cjhfm.mp4" type="video/mp4"></video><div class="info"><div class="shot-id">S08-A1</div><div class="shot-name">人间·老街小院 — 林奶奶和陈大明的日常</div><span class="shot-status">✅ completed</span></div></div>
+  </div>
+</div>
+
+<!-- ==================== 角色参考图 ==================== -->
+<div id="tab-chars" class="content-section">
+  <div class="ep-title">角色参考图</div>
+  <div class="ep-subtitle">17 个角色 · 全部已生成基准图</div>
+
+  <h3 style="color:var(--accent);margin:1.5rem 0 0.8rem;font-size:1rem;">⭐ A档 · 核心角色</h3>
+  <div class="char-grid">
+    <div class="char-card" onclick="openLightbox(this.querySelector('img').src)">
+      <img src="https://nova.file.video.qpic.cn/cms_ai_picture/830522840/fb9405d5-d857-4110-84f0-7965b7bca82f_1.png" alt="莉莉" loading="lazy">
+      <div class="char-info"><div class="char-name" style="color:#FFB6C1;">莉莉</div><div class="char-role">天使实习生 · 笨蛋奇迹制造机</div></div>
+    </div>
+    <div class="char-card" onclick="openLightbox(this.querySelector('img').src)">
+      <img src="https://nova.file.video.qpic.cn/cms_ai_picture/830522840/d86c089f-402b-494c-ac15-264fd97ad16c_3.png" alt="加百利" loading="lazy">
+      <div class="char-info"><div class="char-name" style="color:#7986CB;">加百利</div><div class="char-role">督导官 · 处分报告专业户</div></div>
+    </div>
+    <div class="char-card" onclick="openLightbox(this.querySelector('img').src)">
+      <img src="https://nova.file.video.qpic.cn/cms_ai_picture/830522840/35aa35be-e2c1-4233-b029-9f28048316f9_1.png" alt="老陈" loading="lazy">
+      <div class="char-info"><div class="char-name" style="color:#81C784;">老陈</div><div class="char-role">退休花匠 · 唯一可见天使的凡人</div></div>
+    </div>
+    <div class="char-card" onclick="openLightbox(this.querySelector('img').src)">
+      <img src="https://nova.file.video.qpic.cn/cms_ai_picture/830522840/dd4c9cd2-ea0e-4fa7-9d23-b39dc34a1370_3.png" alt="小黑" loading="lazy">
+      <div class="char-info"><div class="char-name" style="color:#CE93D8;">小黑</div><div class="char-role">叛逆堕天使 · 嘴硬心软王</div></div>
+    </div>
+  </div>
+
+  <h3 style="color:var(--primary-light);margin:1.5rem 0 0.8rem;font-size:1rem;">🌟 B档 · 重要配角</h3>
+  <div class="char-grid">
+    <div class="char-card" onclick="openLightbox(this.querySelector('img').src)">
+      <img src="https://nova.file.video.qpic.cn/cms_ai_picture/830522840/874f3de4-36a3-4dee-b806-1de08d8fef45_1.png" alt="阿圆" loading="lazy">
+      <div class="char-info"><div class="char-name" style="color:#81D4FA;">阿圆</div><div class="char-role">愿望精灵 · 呆萌治愈担当</div></div>
+    </div>
+    <div class="char-card" onclick="openLightbox(this.querySelector('img').src)">
+      <img src="https://nova.file.video.qpic.cn/cms_ai_picture/830522840/d8b18272-332c-46a2-a460-6016062990a6_2.png" alt="审核官" loading="lazy">
+      <div class="char-info"><div class="char-name" style="color:#B0BEC5;">审核官</div><div class="char-role">冷面考官 · 公事公办</div></div>
+    </div>
+    <div class="char-card" onclick="openLightbox(this.querySelector('img').src)">
+      <img src="https://nova.file.video.qpic.cn/cms_ai_picture/830522840/c8334281-ccdf-4fb6-a157-9a8bfc04a136_0.png" alt="司晨" loading="lazy">
+      <div class="char-info"><div class="char-name" style="color:#EF9A9A;">司晨</div><div class="char-role">审核官的学生 · 温和实力派</div></div>
+    </div>
+    <div class="char-card" onclick="openLightbox(this.querySelector('img').src)">
+      <img src="https://nova.file.video.qpic.cn/cms_ai_picture/830522840/f60ca497-9ce8-4e8f-a2fd-2b21a5080f7d_1.png" alt="云霓" loading="lazy">
+      <div class="char-info"><div class="char-name" style="color:#FFB74D;">云霓</div><div class="char-role">莉莉的天使好友 · 元气吐槽</div></div>
+    </div>
+    <div class="char-card" onclick="openLightbox(this.querySelector('img').src)">
+      <img src="https://nova.file.video.qpic.cn/cms_ai_picture/830522840/38cf606c-679e-4ea7-a3cc-c39514f160db_1.png" alt="星河" loading="lazy">
+      <div class="char-info"><div class="char-name" style="color:#B39DDB;">星河</div><div class="char-role">莉莉的天使好友 · 治愈暖男</div></div>
+    </div>
+  </div>
+
+  <h3 style="color:var(--accent3);margin:1.5rem 0 0.8rem;font-size:1rem;">👥 其他角色</h3>
+  <div class="char-grid">
+    <div class="char-card" onclick="openLightbox(this.querySelector('img').src)">
+      <img src="https://nova.file.video.qpic.cn/workstation/Development/material/d7ht44ch257umnaqh580.png" alt="苏果" loading="lazy">
+      <div class="char-info"><div class="char-name">苏果</div><div class="char-role">第一集许愿者 · 暗恋少女</div></div>
+    </div>
+    <div class="char-card" onclick="openLightbox(this.querySelector('img').src)">
+      <img src="https://nova.file.video.qpic.cn/workstation/Development/material/d7hrdj4h257umnaqh4jg.png" alt="阿泽" loading="lazy">
+      <div class="char-info"><div class="char-name">阿泽</div><div class="char-role">苏果暗恋对象 · 咖啡店男生</div></div>
+    </div>
+    <div class="char-card" onclick="openLightbox(this.querySelector('img').src)">
+      <img src="https://nova.file.video.qpic.cn/cms_ai_picture/830522840/d06160c5-57c7-4684-896d-b2204eee0313_3.png" alt="陆小满" loading="lazy">
+      <div class="char-info"><div class="char-name">陆小满</div><div class="char-role">第二集许愿者 · 倒霉蛋</div></div>
+    </div>
+    <div class="char-card" onclick="openLightbox(this.querySelector('img').src)">
+      <img src="https://nova.file.video.qpic.cn/cms_ai_picture/830522840/9eb86050-44b9-4ac1-9b15-9ad854af987e_1.png" alt="林奶奶" loading="lazy">
+      <div class="char-info"><div class="char-name">林奶奶</div><div class="char-role">第三集许愿者 · 没有愿望的老人</div></div>
+    </div>
+    <div class="char-card" onclick="openLightbox(this.querySelector('img').src)">
+      <img src="https://nova.file.video.qpic.cn/cms_ai_picture/830522840/ecd3c9e1-6cb6-4c3f-82fb-46ea81151648_3.png" alt="陈大明" loading="lazy">
+      <div class="char-info"><div class="char-name">陈大明</div><div class="char-role">林奶奶的老伴 · 憨厚中年男</div></div>
+    </div>
+    <div class="char-card" onclick="openLightbox(this.querySelector('img').src)">
+      <img src="https://nova.file.video.qpic.cn/cms_ai_picture/830522840/4666b2ba-892b-449b-b5dc-d04a096d0b92_1.png" alt="小陈" loading="lazy">
+      <div class="char-info"><div class="char-name">小陈</div><div class="char-role">便利店店员</div></div>
+    </div>
+    <div class="char-card" onclick="openLightbox(this.querySelector('img').src)">
+      <img src="https://nova.file.video.qpic.cn/cms_ai_picture/830522840/a14e10e9-5f9e-4900-9f6a-f9a479508898_1.png" alt="许愿者" loading="lazy">
+      <div class="char-info"><div class="char-name">许愿者</div><div class="char-role">第三集训练场虚拟角色</div></div>
+    </div>
+    <div class="char-card" onclick="openLightbox(this.querySelector('img').src)">
+      <img src="https://nova.file.video.qpic.cn/cms_ai_picture/830522840/1b89bf4a-37c0-4a0c-a91c-e10889f9dd4d_1.png" alt="许愿者妈妈" loading="lazy">
+      <div class="char-info"><div class="char-name">许愿者妈妈</div><div class="char-role">第三集训练场虚拟角色</div></div>
+    </div>
+  </div>
+</div>
+
+<!-- ==================== 尾帧 ==================== -->
+<div id="tab-tails" class="content-section">
+  <div class="ep-title">尾帧图片</div>
+  <div class="ep-subtitle">第三集尾帧 · 用于镜头间画面衔接</div>
+
+  <div class="tail-grid">
+    <div class="tail-card" onclick="openLightbox(this.querySelector('img').src)"><img src="https://nova.file.video.qpic.cn/workstation/Development/material/d7ke80kh257kakft2l00.png" alt="S06-A1b" loading="lazy"><div class="tail-info"><div class="tail-id">S06-A1b</div><div class="tail-date">04-22 23:06</div></div></div>
+    <div class="tail-card" onclick="openLightbox(this.querySelector('img').src)"><img src="https://nova.file.video.qpic.cn/workstation/Development/material/d7kf0jsh257kakft2l5g.png" alt="S06-A2" loading="lazy"><div class="tail-info"><div class="tail-id">S06-A2</div><div class="tail-date">04-22 23:59</div></div></div>
+    <div class="tail-card" onclick="openLightbox(this.querySelector('img').src)"><img src="https://nova.file.video.qpic.cn/workstation/Development/material/d7kf3qch257kakft2l6g.png" alt="S06-A2a" loading="lazy"><div class="tail-info"><div class="tail-id">S06-A2a</div><div class="tail-date">04-23 00:06</div></div></div>
+    <div class="tail-card" onclick="openLightbox(this.querySelector('img').src)"><img src="https://nova.file.video.qpic.cn/workstation/Development/material/d7kfo4sh257kakft2lc0.png" alt="S06-A2b" loading="lazy"><div class="tail-info"><div class="tail-id">S06-A2b</div><div class="tail-date">04-23 00:49</div></div></div>
+    <div class="tail-card" onclick="openLightbox(this.querySelector('img').src)"><img src="https://nova.file.video.qpic.cn/workstation/Development/material/d7krgp4h257kakft2lrg.png" alt="S07-A1" loading="lazy"><div class="tail-info"><div class="tail-id">S07-A1</div><div class="tail-date">04-23 14:12</div></div></div>
+    <div class="tail-card" onclick="openLightbox(this.querySelector('img').src)"><img src="https://nova.file.video.qpic.cn/workstation/Development/material/d7krp34h257kakft2lsg.png" alt="S07-A1a" loading="lazy"><div class="tail-info"><div class="tail-id">S07-A1a</div><div class="tail-date">04-23 14:30</div></div></div>
+    <div class="tail-card" onclick="openLightbox(this.querySelector('img').src)"><img src="https://nova.file.video.qpic.cn/workstation/Development/material/d7ks7ech257kakft2lv0.png" alt="S07-A1b" loading="lazy"><div class="tail-info"><div class="tail-id">S07-A1b</div><div class="tail-date">04-23 15:01</div></div></div>
+    <div class="tail-card" onclick="openLightbox(this.querySelector('img').src)"><img src="https://nova.file.video.qpic.cn/workstation/Development/material/d7ksb5ch257kakft2m40.png" alt="S07-A1b2" loading="lazy"><div class="tail-info"><div class="tail-id">S07-A1b2</div><div class="tail-date">04-23 15:09</div></div></div>
+    <div class="tail-card" onclick="openLightbox(this.querySelector('img').src)"><img src="https://nova.file.video.qpic.cn/workstation/Development/material/d7ku47ch257kakft2oi0.png" alt="S07-A1c1" loading="lazy"><div class="tail-info"><div class="tail-id">S07-A1c1</div><div class="tail-date">04-23 17:10</div></div></div>
+    <div class="tail-card" onclick="openLightbox(this.querySelector('img').src)"><img src="https://nova.file.video.qpic.cn/workstation/Development/material/d7kv5b4h257kakft2ou0.png" alt="S07-A1c2" loading="lazy"><div class="tail-info"><div class="tail-id">S07-A1c2</div><div class="tail-date">04-23 18:21</div></div></div>
+    <div class="tail-card" onclick="openLightbox(this.querySelector('img').src)"><img src="https://nova.file.video.qpic.cn/workstation/Development/material/d7kvck4h257kakft2ovg.png" alt="S07-A1d" loading="lazy"><div class="tail-info"><div class="tail-id">S07-A1d</div><div class="tail-date">04-23 18:37</div></div></div>
+    <div class="tail-card" onclick="openLightbox(this.querySelector('img').src)"><img src="https://nova.file.video.qpic.cn/workstation/Development/material/d7kvphsh257kakft2p1g.png" alt="S07-A1d2" loading="lazy"><div class="tail-info"><div class="tail-id">S07-A1d2</div><div class="tail-date">04-23 19:04</div></div></div>
+    <div class="tail-card" onclick="openLightbox(this.querySelector('img').src)"><img src="https://nova.file.video.qpic.cn/workstation/Development/material/d7l03ash257kakft2pa0.png" alt="S07-A1e" loading="lazy"><div class="tail-info"><div class="tail-id">S07-A1e</div><div class="tail-date">04-23 19:25</div></div></div>
+    <div class="tail-card" onclick="openLightbox(this.querySelector('img').src)"><img src="https://nova.file.video.qpic.cn/workstation/Development/material/d7l09ekh257kakft2pb0.png" alt="S07-A2" loading="lazy"><div class="tail-info"><div class="tail-id">S07-A2</div><div class="tail-date">04-23 19:38</div></div></div>
+    <div class="tail-card" onclick="openLightbox(this.querySelector('img').src)"><img src="https://nova.file.video.qpic.cn/workstation/Development/material/d7l2bakh257kakft2t80.png" alt="S07-A3" loading="lazy"><div class="tail-info"><div class="tail-id">S07-A3</div><div class="tail-date">04-23 21:59</div></div></div>
+    <div class="tail-card" onclick="openLightbox(this.querySelector('img').src)"><img src="https://nova.file.video.qpic.cn/workstation/Development/material/d7l39r4h257kakft2td0.png" alt="S07-A4" loading="lazy"><div class="tail-info"><div class="tail-id">S07-A4</div><div class="tail-date">04-23 23:04</div></div></div>
+    <div class="tail-card" onclick="openLightbox(this.querySelector('img').src)"><img src="https://nova.file.video.qpic.cn/workstation/Development/material/d7l3g9ch257kakft2te0.png" alt="S08-A1" loading="lazy"><div class="tail-info"><div class="tail-id">S08-A1</div><div class="tail-date">04-23 23:18</div></div></div>
+  </div>
+</div>
+
+</div><!-- container -->
+
+<!-- 灯箱 -->
+<div class="lightbox" id="lightbox" onclick="closeLightbox()">
+  <button class="close-btn" onclick="closeLightbox()">✕</button>
+  <img id="lightbox-img" src="" alt="预览">
+</div>
+
+<!-- Footer -->
+<footer>
+  <p>🪽 笨蛋天使实习手册 — 全部资源在线预览 · 生成于 2026-04-28</p>
+  <p style="margin-top:0.3rem;">「人类许的愿望，从来都不是他们真正想要的。」</p>
+</footer>
+
+<script>
+// Tab 切换
+function switchTab(tabId) {
+  document.querySelectorAll('.content-section').forEach(s => s.classList.remove('active'));
+  document.querySelectorAll('.topnav .tabs button').forEach(b => b.classList.remove('active'));
+  document.getElementById('tab-' + tabId).classList.add('active');
+  // 暂停所有视频 + 卸载非活动 tab 的 source，释放内存
+  document.querySelectorAll('video').forEach(v => {
+    v.pause();
+    const card = v.closest('.content-section');
+    if (card && !card.classList.contains('active')) {
+      unloadVideo(v);
+    }
+  });
+  // 高亮按钮
+  const tabs = document.querySelectorAll('.topnav .tabs button');
+  const tabMap = { ep1: 0, ep2: 1, ep3: 2, chars: 3, tails: 4 };
+  if (tabMap[tabId] !== undefined) tabs[tabMap[tabId]].classList.add('active');
+  // 切换后重新观察当前 tab 的视频
+  setTimeout(observeActiveVideos, 50);
+}
+
+// 卸载视频（彻底释放网络/内存）
+function unloadVideo(v) {
+  if (!v.dataset.loaded) return;
+  v.pause();
+  v.removeAttribute('src');
+  // 将 source 的 src 转回 data-src
+  const source = v.querySelector('source');
+  if (source && source.src) {
+    source.removeAttribute('src');
+  }
+  try { v.load(); } catch (e) {}
+  delete v.dataset.loaded;
+  if (v._observed) {
+    window.__videoObserver && window.__videoObserver.unobserve(v);
+    v._observed = false;
+  }
+}
+
+// 装载视频（将 data-src 写入 source 并 load）
+function loadVideo(v) {
+  if (v.dataset.loaded) return;
+  const source = v.querySelector('source');
+  if (source && source.dataset.src && !source.src) {
+    source.src = source.dataset.src;
+  }
+  try { v.load(); } catch (e) {}
+  v.dataset.loaded = '1';
+}
+
+// 搜索过滤
+function filterVideos(epId, query) {
+  const grid = document.getElementById('grid-' + epId);
+  if (!grid) return;
+  const cards = grid.querySelectorAll('.video-card');
+  const q = query.toLowerCase();
+  cards.forEach(card => {
+    const searchText = (card.getAttribute('data-search') || '').toLowerCase();
+    card.style.display = searchText.includes(q) ? '' : 'none';
+  });
+}
+
+// 视频互斥播放 + 按需懒加载
+function setupVideos() {
+  const allVideos = document.querySelectorAll('video');
+
+  allVideos.forEach(video => {
+    video.preload = 'none';
+
+    // 互斥播放：播放时暂停其他视频
+    video.addEventListener('play', function() {
+      // 确保自己已装载
+      loadVideo(video);
+      allVideos.forEach(otherVideo => {
+        if (otherVideo !== video && !otherVideo.paused) {
+          otherVideo.pause();
+        }
+      });
+    });
+  });
+
+  // 创建全局 IntersectionObserver，仅加载进入视口的视频元数据
+  if ('IntersectionObserver' in window) {
+    window.__videoObserver = new IntersectionObserver((entries) => {
+      entries.forEach(entry => {
+        if (entry.isIntersecting) {
+          const v = entry.target;
+          loadVideo(v);
+          // 仅装载元数据一次，后续移出观察
+          window.__videoObserver.unobserve(v);
+          v._observed = false;
+        }
+      });
+    }, { rootMargin: '100px', threshold: 0.01 });
+  }
+
+  // 首次观察当前活动 tab 的视频
+  observeActiveVideos();
+}
+
+// 只对当前活动 tab 下的视频启用观察
+function observeActiveVideos() {
+  if (!window.__videoObserver) return;
+  const activeSection = document.querySelector('.content-section.active');
+  if (!activeSection) return;
+  const videos = activeSection.querySelectorAll('video');
+  videos.forEach(v => {
+    if (!v._observed && !v.dataset.loaded) {
+      window.__videoObserver.observe(v);
+      v._observed = true;
+    }
+  });
+}
+
+// 灯箱
+function openLightbox(src) {
+  document.getElementById('lightbox-img').src = src;
+  document.getElementById('lightbox').classList.add('show');
+  document.body.style.overflow = 'hidden';
+}
+function closeLightbox() {
+  document.getElementById('lightbox').classList.remove('show');
+  document.body.style.overflow = '';
+}
+document.addEventListener('keydown', e => { if (e.key === 'Escape') closeLightbox(); });
+
+// 页面加载完成后初始化视频
+document.addEventListener('DOMContentLoaded', function() {
+  setupVideos();
+});
+</script>
+
+</body>
+</html>
