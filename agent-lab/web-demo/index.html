@@ -1,0 +1,446 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8" />
+<title>最小 Agent Demo · Mock LLM + ReAct</title>
+<style>
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    font-family: -apple-system, "PingFang SC", "Microsoft YaHei", sans-serif;
+    background: #f5f6f8;
+    color: #222;
+  }
+  .app {
+    max-width: 980px;
+    margin: 24px auto;
+    padding: 0 16px;
+  }
+  h1 { margin: 0 0 4px; font-size: 22px; }
+  .sub { color: #777; font-size: 13px; margin-bottom: 16px; }
+  .panel {
+    background: #fff;
+    border-radius: 10px;
+    box-shadow: 0 1px 4px rgba(0,0,0,0.06);
+    padding: 16px 18px;
+    margin-bottom: 14px;
+  }
+  .ask {
+    display: flex; gap: 8px;
+  }
+  .ask input {
+    flex: 1; padding: 10px 12px;
+    border: 1px solid #d6d8dc; border-radius: 6px;
+    font-size: 14px;
+  }
+  .ask button {
+    padding: 10px 18px;
+    background: #2d7df6; color: #fff; border: none; border-radius: 6px;
+    font-size: 14px; cursor: pointer;
+  }
+  .ask button:disabled { background: #aac6f3; cursor: not-allowed; }
+  .examples { margin-top: 8px; font-size: 12px; color: #888; }
+  .examples span {
+    display: inline-block; margin-right: 8px; padding: 2px 8px;
+    background: #eef2f8; border-radius: 12px; cursor: pointer; color: #2d7df6;
+  }
+  .options {
+    margin-top: 10px; font-size: 12px; color: #666;
+    display: flex; gap: 16px; align-items: center;
+  }
+  .options label { cursor: pointer; }
+
+  .round {
+    border-left: 3px solid #2d7df6;
+    padding: 10px 14px;
+    margin: 10px 0;
+    background: #fbfcfe;
+    border-radius: 0 6px 6px 0;
+  }
+  .round .tag {
+    display: inline-block;
+    padding: 1px 8px; border-radius: 10px;
+    font-size: 11px; color: #fff; background: #2d7df6;
+    margin-bottom: 6px;
+  }
+  .line { font-family: ui-monospace, Menlo, Consolas, monospace; font-size: 13px; line-height: 1.7; }
+  .label { color: #888; }
+  .thought { color: #555; }
+  .action { color: #c2410c; }
+  .obs { color: #047857; }
+  .final {
+    background: #ecfdf5; border: 1px solid #34d399;
+    padding: 10px 14px; border-radius: 6px; margin-top: 10px;
+    font-size: 14px;
+  }
+  .err {
+    color: #b91c1c; background: #fef2f2;
+    padding: 2px 8px; border-radius: 4px;
+    display: inline-block; margin-top: 4px;
+    font-size: 12px;
+  }
+  .retry {
+    color: #92400e; background: #fef3c7;
+    padding: 2px 8px; border-radius: 4px;
+    display: inline-block; margin-left: 6px;
+    font-size: 12px;
+  }
+  .fatal {
+    background: #fef2f2; border: 1px solid #f87171;
+    color: #b91c1c;
+    padding: 10px 14px; border-radius: 6px; margin-top: 10px;
+    font-size: 14px;
+  }
+  details { margin-top: 6px; }
+  summary { cursor: pointer; color: #888; font-size: 12px; }
+  pre {
+    background: #1f2430; color: #d6deeb;
+    padding: 10px; border-radius: 6px;
+    font-size: 12px; overflow-x: auto;
+    margin: 6px 0 0;
+  }
+</style>
+</head>
+<body>
+<div class="app">
+  <h1>最小 Agent Demo</h1>
+  <div class="sub">纯前端 · Mock LLM · ReAct 循环可视化 — 体验「截断 → 解析 → 执行 → 回灌」</div>
+
+  <div class="panel">
+    <div class="ask">
+      <input id="q" placeholder='试试："北京今天天气怎么样？下雨就提醒我带伞"'/>
+      <button id="run">运行 Agent</button>
+    </div>
+    <div class="examples">
+      示例：
+      <span data-q="北京今天天气怎么样？下雨就提醒我带伞">北京天气+带伞</span>
+      <span data-q="现在几点了">当前时间</span>
+      <span data-q="上海现在天气如何，顺便告诉我现在几点">上海天气+时间</span>
+    </div>
+    <div class="options">
+      <label><input type="checkbox" id="failTool" /> 模拟工具失败（60% 概率）</label>
+      <label><input type="checkbox" id="failLLM" /> 模拟 LLM 输出格式错误（首轮）</label>
+      <label>最大重试次数：<input type="number" id="maxRetry" value="3" min="0" max="5" style="width:40px"/></label>
+    </div>
+  </div>
+
+  <div id="log"></div>
+</div>
+
+<script>
+/* =========================================================
+ * 0. 运行配置（由 UI 控制）
+ * ========================================================= */
+const config = {
+  failTool: false,      // 工具是否概率失败
+  failLLMOnce: false,   // 首轮 LLM 是否输出格式错误
+  maxRetry: 3,          // 单步最大重试次数
+  _llmFailedOnce: false // 内部状态：首轮错误是否已触发过
+};
+
+/* =========================================================
+ * 1. 工具（Agent 的"手脚"）
+ *    - 工具可能抛错（如网络超时），调用方负责重试
+ * ========================================================= */
+const tools = {
+  get_weather: {
+    desc: "查询某城市今天天气，参数：城市名",
+    run: (city) => {
+      // 模拟真实世界：网络请求可能失败
+      if (config.failTool && Math.random() < 0.6) {
+        throw new Error("网络超时（mock）");
+      }
+      const data = {
+        "北京": "小雨，气温 18℃",
+        "上海": "多云，气温 26℃",
+        "广州": "雷阵雨，气温 29℃",
+      };
+      return data[city] || `${city} 晴朗，气温 22℃`;
+    }
+  },
+  get_time: {
+    desc: "获取当前时间，无参数",
+    run: () => new Date().toLocaleString("zh-CN")
+  }
+};
+
+/* 通用重试器：指数退避 */
+async function withRetry(fn, { max = 3, label = "task", onRetry } = {}) {
+  let lastErr;
+  for (let attempt = 1; attempt <= max + 1; attempt++) {
+    try {
+      return { ok: true, value: await fn(), attempts: attempt };
+    } catch (e) {
+      lastErr = e;
+      if (attempt > max) break;
+      const delay = 200 * Math.pow(2, attempt - 1); // 200ms, 400ms, 800ms...
+      onRetry && onRetry({ attempt, max, error: e, nextDelay: delay, label });
+      await new Promise(r => setTimeout(r, delay));
+    }
+  }
+  return { ok: false, error: lastErr, attempts: max + 1 };
+}
+
+/* =========================================================
+ * 2. Mock LLM：模拟真实大模型"续写"行为
+ *    - 输入：完整 prompt（含历史）
+ *    - 输出：一段续写，遇到 "Observation:" 自动停（模拟 stop token 截断）
+ * ========================================================= */
+function mockLLM(prompt) {
+  // 取出用户问题（在 prompt 末尾的 "用户问题：xxx" 之后）
+  const userQ = (prompt.match(/用户问题：(.+)/) || [])[1] || "";
+
+  // 取出历史中已经出现的 Observation，用来判断"轮次"
+  const observations = [...prompt.matchAll(/Observation:\s*(.+)/g)].map(m => m[1]);
+  const turn = observations.length;  // 0 = 还没调用过工具
+
+  // 模拟首轮 LLM 输出格式错误（一次性，让重试能恢复）
+  if (config.failLLMOnce && turn === 0 && !config._llmFailedOnce) {
+    config._llmFailedOnce = true;
+    return `嗯……我觉得用户想问天气，但我懒得按格式输出了 ¯\\_(ツ)_/¯`;
+  }
+
+  // 如果上一条 Observation 是"工具错误"，让 LLM 决定如何应对
+  const lastObs = observations[observations.length - 1] || "";
+  if (/错误：工具调用失败/.test(lastObs)) {
+    return `Thought: 工具反复失败，我无法获取该数据，应如实告知用户。\nFinal Answer: 抱歉，相关服务暂时不可用，请稍后再试。`;
+  }
+
+  // 简单规则：根据用户问题里的关键词决定动作
+  const needWeather = /天气|下雨|带伞/.test(userQ);
+  const needTime = /几点|时间|现在/.test(userQ);
+
+  // ===== 第 1 轮：先决定调一个工具 =====
+  if (turn === 0) {
+    if (needWeather) {
+      const city = (userQ.match(/(北京|上海|广州|深圳|杭州)/) || [])[1] || "北京";
+      // 注意：模型只写到 Action Input 就停（真实场景由 stop token 截断）
+      return `Thought: 用户问到了天气，我需要先调用 get_weather 查询。\nAction: get_weather\nAction Input: ${city}`;
+    }
+    if (needTime) {
+      return `Thought: 用户想知道当前时间，调用 get_time。\nAction: get_time\nAction Input: -`;
+    }
+    return `Thought: 这个问题我直接回答即可。\nFinal Answer: 抱歉，我暂时只会查天气和时间~`;
+  }
+
+  // ===== 第 2 轮：如果还需要另一个工具，继续调；否则给 Final Answer =====
+  if (turn === 1) {
+    if (needWeather && needTime && !prompt.includes("Action: get_time")) {
+      return `Thought: 已经拿到天气，还需要查时间。\nAction: get_time\nAction Input: -`;
+    }
+    if (needTime && needWeather && !prompt.includes("Action: get_weather")) {
+      const city = (userQ.match(/(北京|上海|广州|深圳|杭州)/) || [])[1] || "北京";
+      return `Thought: 已经拿到时间，还需要查天气。\nAction: get_weather\nAction Input: ${city}`;
+    }
+    // 单工具任务，直接总结
+    const lastObs = observations[observations.length - 1];
+    if (needWeather) {
+      const rainy = /雨/.test(lastObs);
+      const tip = rainy ? "记得带伞出门哦~" : "天气不错，无需带伞。";
+      return `Thought: 已经拿到天气信息，可以回复用户了。\nFinal Answer: ${lastObs}。${tip}`;
+    }
+    if (needTime) {
+      return `Thought: 已经拿到时间。\nFinal Answer: 现在是 ${lastObs}`;
+    }
+  }
+
+  // ===== 第 3 轮：两个工具都调完，汇总 =====
+  if (turn === 2) {
+    const weatherObs = observations.find(o => /℃/.test(o)) || "";
+    const timeObs = observations.find(o => !/℃/.test(o)) || "";
+    const rainy = /雨/.test(weatherObs);
+    const tip = rainy ? "在下雨，记得带伞~" : "天气不错。";
+    return `Thought: 信息齐全，汇总回复。\nFinal Answer: 现在是 ${timeObs}，天气：${weatherObs}。${tip}`;
+  }
+
+  return `Thought: 信息已足够。\nFinal Answer: 完成。`;
+}
+
+/* =========================================================
+ * 3. 解析 LLM 输出（提取 Action / Final Answer）
+ * ========================================================= */
+function parse(text) {
+  const finalMatch = text.match(/Final Answer:\s*([\s\S]+)$/);
+  if (finalMatch) return { type: "final", answer: finalMatch[1].trim() };
+
+  const action = (text.match(/Action:\s*(\S+)/) || [])[1];
+  const input = (text.match(/Action Input:\s*(.+)/) || [])[1];
+  if (action) return { type: "action", action, input: (input || "").trim() };
+
+  return { type: "unknown", text };
+}
+
+/* =========================================================
+ * 4. ReAct 主循环
+ * ========================================================= */
+async function runAgent(userQuestion, render) {
+  // 初始 prompt（系统约定 + 工具列表 + 用户问题）
+  const toolList = Object.entries(tools)
+    .map(([n, t]) => `- ${n}: ${t.desc}`).join("\n");
+
+  let history =
+`你可以使用以下工具：
+${toolList}
+
+请严格按以下格式输出：
+Thought: 你的思考
+Action: 工具名
+Action Input: 工具参数
+（然后停下，等待 Observation）
+
+当你能回答用户时输出：
+Thought: ...
+Final Answer: ...
+
+用户问题：${userQuestion}
+`;
+
+  const MAX_TURN = 5;
+  for (let i = 1; i <= MAX_TURN; i++) {
+    /* ① 把整段历史喂给"大模型"，并对格式错误进行重试 */
+    const llmResult = await withRetry(
+      async () => {
+        const out = mockLLM(history);
+        const p = parse(out);
+        if (p.type === "unknown") {
+          throw new Error("LLM 输出格式不合规，无法解析 Action/Final Answer");
+        }
+        return { out, parsed: p };
+      },
+      {
+        max: config.maxRetry,
+        label: "LLM 输出",
+        onRetry: ({ attempt, max, error }) =>
+          render({ retry: true, scope: "LLM", turn: i, attempt, max, error: error.message })
+      }
+    );
+
+    if (!llmResult.ok) {
+      render({ fatal: true, scope: "LLM", turn: i, error: llmResult.error.message });
+      return;
+    }
+
+    const { out: llmOut, parsed } = llmResult.value;
+    render({ turn: i, prompt: history, llmOut, parsed });
+
+    if (parsed.type === "final") return;
+
+    if (parsed.type === "action") {
+      /* ② 程序真正执行工具，对工具错误进行重试 */
+      const tool = tools[parsed.action];
+      if (!tool) {
+        // 工具不存在：当作 Observation 回灌，让 LLM 自己纠正
+        const obs = `错误：未找到工具 ${parsed.action}`;
+        history += `\n${llmOut}\nObservation: ${obs}\n`;
+        render({ turn: i, observation: obs, isError: true });
+      } else {
+        const toolResult = await withRetry(
+          async () => tool.run(parsed.input === "-" ? undefined : parsed.input),
+          {
+            max: config.maxRetry,
+            label: `工具 ${parsed.action}`,
+            onRetry: ({ attempt, max, error }) =>
+              render({ retry: true, scope: "TOOL", turn: i, attempt, max, error: error.message })
+          }
+        );
+
+        // 即使最终失败，也把"失败"作为 Observation 回灌，让 LLM 决定下一步
+        const obs = toolResult.ok
+          ? toolResult.value
+          : `错误：工具调用失败（${toolResult.error.message}），已重试 ${config.maxRetry} 次`;
+        history += `\n${llmOut}\nObservation: ${obs}\n`;
+        render({ turn: i, observation: obs, isError: !toolResult.ok });
+      }
+    } else {
+      return;
+    }
+
+    // 视觉上延迟一下，便于观察
+    await new Promise(r => setTimeout(r, 350));
+  }
+
+  render({ fatal: true, scope: "LOOP", error: `已达最大轮次（${MAX_TURN}）仍未得到 Final Answer` });
+}
+
+/* =========================================================
+ * 5. UI 渲染
+ * ========================================================= */
+const logEl = document.getElementById("log");
+const runBtn = document.getElementById("run");
+const qInput = document.getElementById("q");
+
+function colorize(line) {
+  if (line.startsWith("Thought:")) return `<span class="label">Thought:</span><span class="thought">${esc(line.slice(8))}</span>`;
+  if (line.startsWith("Action:"))  return `<span class="label">Action:</span><span class="action">${esc(line.slice(7))}</span>`;
+  if (line.startsWith("Action Input:")) return `<span class="label">Action Input:</span><span class="action">${esc(line.slice(13))}</span>`;
+  return esc(line);
+}
+function esc(s) { return s.replace(/[&<>]/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;"}[c])); }
+
+function render(ev) {
+  // 重试通知
+  if (ev.retry) {
+    const tipText = ev.scope === "LLM"
+      ? `⚠️ LLM 输出无法解析，重试 ${ev.attempt}/${ev.max}：${ev.error}`
+      : `⚠️ 工具调用失败，重试 ${ev.attempt}/${ev.max}：${ev.error}`;
+    logEl.insertAdjacentHTML("beforeend",
+      `<div class="round"><span class="retry">${esc(tipText)}</span></div>`);
+    return;
+  }
+
+  // 致命错误（重试耗尽 / 超出最大轮次）
+  if (ev.fatal) {
+    logEl.insertAdjacentHTML("beforeend",
+      `<div class="fatal">❌ 终止：${esc(ev.error)}</div>`);
+    return;
+  }
+
+  if (ev.observation !== undefined) {
+    const last = logEl.lastElementChild;
+    const cls = ev.isError ? "err" : "obs";
+    last.insertAdjacentHTML("beforeend",
+      `<div class="line"><span class="label">Observation:</span> <span class="${cls}">${esc(ev.observation)}</span></div>`);
+    return;
+  }
+  if (ev.parsed.type === "final") {
+    logEl.insertAdjacentHTML("beforeend",
+      `<div class="final">✅ Final Answer: ${esc(ev.parsed.answer)}</div>`);
+    return;
+  }
+
+  const lines = ev.llmOut.split("\n").map(colorize).map(l => `<div class="line">${l}</div>`).join("");
+  logEl.insertAdjacentHTML("beforeend", `
+    <div class="round">
+      <div class="tag">第 ${ev.turn} 轮</div>
+      ${lines}
+      <details><summary>查看本轮喂给 LLM 的完整 prompt</summary><pre>${esc(ev.prompt)}</pre></details>
+    </div>
+  `);
+}
+
+runBtn.addEventListener("click", async () => {
+  const q = qInput.value.trim();
+  if (!q) return;
+  // 同步 UI 配置
+  config.failTool = document.getElementById("failTool").checked;
+  config.failLLMOnce = document.getElementById("failLLM").checked;
+  config.maxRetry = parseInt(document.getElementById("maxRetry").value, 10) || 0;
+  config._llmFailedOnce = false; // 重置一次性触发器
+
+  logEl.innerHTML = "";
+  runBtn.disabled = true;
+  try { await runAgent(q, render); }
+  finally { runBtn.disabled = false; }
+});
+
+document.querySelectorAll(".examples span").forEach(el => {
+  el.addEventListener("click", () => {
+    qInput.value = el.dataset.q;
+    runBtn.click();
+  });
+});
+
+qInput.addEventListener("keydown", e => { if (e.key === "Enter") runBtn.click(); });
+</script>
+</body>
+</html>
