@@ -49,6 +49,83 @@
     display: flex; gap: 16px; align-items: center;
   }
   .options label { cursor: pointer; }
+  .tip-rag {
+    margin-top: 10px; font-size: 12px; color: #6b5e00;
+    background: #fffbe6; border: 1px dashed #f0d264;
+    padding: 8px 10px; border-radius: 6px;
+  }
+
+  /* ===== RAG 检索面板 ===== */
+  .rag {
+    border-left: 3px solid #7c3aed;
+    background: #faf5ff;
+    padding: 10px 14px; margin: 10px 0;
+    border-radius: 0 6px 6px 0;
+  }
+  .rag .tag {
+    display: inline-block; padding: 1px 8px; border-radius: 10px;
+    font-size: 11px; color: #fff; background: #7c3aed; margin-bottom: 8px;
+  }
+  .rag .step { font-size: 12px; color: #555; margin: 6px 0 2px; }
+  .rag .vec {
+    font-family: ui-monospace, Menlo, Consolas, monospace; font-size: 11px;
+    color: #7c3aed; word-break: break-all;
+  }
+  .rag-item {
+    display: flex; align-items: center; gap: 8px;
+    font-size: 12.5px; padding: 4px 8px; margin: 3px 0;
+    border-radius: 5px; background: #fff; border: 1px solid #eee;
+  }
+  .rag-item.hit { background: #f3e8ff; border-color: #d8b4fe; }
+  .rag-item .score {
+    font-family: ui-monospace, Menlo, Consolas, monospace;
+    font-size: 11px; color: #7c3aed; min-width: 64px;
+  }
+  .rag-item .bar {
+    height: 6px; border-radius: 3px; background: #ddd6fe;
+    min-width: 2px;
+  }
+  .rag-item .doc { flex: 1; color: #333; }
+  .rag-item .badge {
+    font-size: 10px; color: #fff; background: #7c3aed;
+    padding: 1px 6px; border-radius: 8px;
+  }
+  .rag .inject {
+    margin-top: 8px; font-size: 12px; color: #444;
+    background: #fff; border: 1px solid #e9d5ff;
+    border-radius: 6px; padding: 8px 10px; white-space: pre-wrap;
+  }
+
+  /* ===== 短期记忆 Scratchpad 面板 ===== */
+  .scratch-head {
+    display: flex; justify-content: space-between; align-items: center;
+    margin-bottom: 8px; flex-wrap: wrap; gap: 6px;
+  }
+  .tag-mem {
+    background: #0891b2; color: #fff; font-size: 12px;
+    padding: 2px 10px; border-radius: 10px;
+  }
+  .scratch-meta { font-size: 12px; color: #666; }
+  .ctx-bar {
+    height: 8px; background: #e5e7eb; border-radius: 4px;
+    overflow: hidden; margin-bottom: 8px;
+  }
+  .ctx-fill {
+    height: 100%; width: 0;
+    background: linear-gradient(90deg, #22d3ee, #0891b2);
+    transition: width .3s ease;
+  }
+  .scratch-pre {
+    background: #0f172a; color: #cbd5e1;
+    padding: 10px 12px; border-radius: 6px;
+    font-size: 12px; line-height: 1.65;
+    max-height: 280px; overflow: auto;
+    white-space: pre-wrap; word-break: break-all; margin: 0;
+  }
+  .scratch-new {
+    background: #fde047; color: #1f2937; border-radius: 2px;
+  }
+  .scratch-note { font-size: 12px; color: #888; margin-top: 8px; }
 
   .round {
     border-left: 3px solid #2d7df6;
@@ -118,9 +195,30 @@
       <span data-q="上海现在天气如何，顺便告诉我现在几点">上海天气+时间</span>
     </div>
     <div class="options">
+      <label><input type="checkbox" id="useRAG" /> <b>启用长期记忆（RAG）</b></label>
+      <label>检索 Top-K：<input type="number" id="topK" value="2" min="1" max="5" style="width:40px"/></label>
+    </div>
+    <div class="options">
       <label><input type="checkbox" id="failTool" /> 模拟工具失败（60% 概率）</label>
       <label><input type="checkbox" id="failLLM" /> 模拟 LLM 输出格式错误（首轮）</label>
       <label>最大重试次数：<input type="number" id="maxRetry" value="3" min="0" max="5" style="width:40px"/></label>
+    </div>
+    <div class="tip-rag">
+      💡 勾选「长期记忆」后，先跑一次<b>北京天气+带伞</b>看通用回答；再勾选重跑，
+      对比 Agent 如何根据知识库里的<b>个人偏好</b>给出不一样的建议。
+    </div>
+  </div>
+
+  <div class="panel" id="scratchPanel" style="display:none">
+    <div class="scratch-head">
+      <span class="tag-mem">🧠 短期记忆 Scratchpad（每轮滚雪球增长）</span>
+      <span class="scratch-meta" id="scratchMeta"></span>
+    </div>
+    <div class="ctx-bar"><div class="ctx-fill" id="ctxFill"></div></div>
+    <pre class="scratch-pre" id="scratchPre"></pre>
+    <div class="scratch-note">
+      黄色高亮 = 本轮新追加的内容。这就是「短期记忆」——它<b>不是外部数据库</b>，
+      而是每次原封不动喂给 LLM 的<b>历史文本</b>，越滚越长，最终会撑爆上下文窗口。
     </div>
   </div>
 
@@ -135,8 +233,62 @@ const config = {
   failTool: false,      // 工具是否概率失败
   failLLMOnce: false,   // 首轮 LLM 是否输出格式错误
   maxRetry: 3,          // 单步最大重试次数
-  _llmFailedOnce: false // 内部状态：首轮错误是否已触发过
+  _llmFailedOnce: false,// 内部状态：首轮错误是否已触发过
+  useRAG: false,        // 是否启用长期记忆（RAG）
+  topK: 2,              // 检索返回的条数
+  _retrieved: []        // 内部状态：本次检索命中的知识
 };
+
+/* =========================================================
+ * 0.5 长期记忆（向量库模拟）
+ *    - knowledgeBase：跨会话沉淀的个人偏好 / 制度 / 常识
+ *    - embed()：把文本"向量化"（这里用中文 2-gram 特征集合模拟向量）
+ *    - similarity()：用 Jaccard 相似度模拟"向量距离"
+ *    - retrieve()：把问题向量化，在库里取最相关的 Top-K
+ * ========================================================= */
+const knowledgeBase = [
+  { id: "k1", text: "用户偏好：主人住在北京，每天早上 8 点出门通勤上班。" },
+  { id: "k2", text: "用户偏好：主人有一把折叠伞常年放在公司，下雨天不必从家里带伞。" },
+  { id: "k3", text: "公司制度：遇到暴雨红色预警时，员工可以申请居家办公。" },
+  { id: "k4", text: "用户偏好：主人怕热，气温超过 30℃ 会觉得难受，外出要做好防晒。" },
+  { id: "k5", text: "常识：广州夏季多雷阵雨，外出建议随身携带雨具。" },
+  { id: "k6", text: "菜谱：番茄炒蛋需要鸡蛋、番茄和少许盐，是道家常菜。" } // 噪声：与天气无关，用来证明检索会过滤掉不相关内容
+];
+
+/* 把一段文本"向量化"为特征集合（中文取相邻 2-gram + 数字/英文词） */
+function embed(text) {
+  const clean = text.replace(/[，。、：；！？\s（）()【】「」~℃]/g, "");
+  const grams = new Set();
+  // 中文 2-gram
+  const zh = clean.match(/[\u4e00-\u9fa5]/g) || [];
+  for (let i = 0; i < zh.length - 1; i++) grams.add(zh[i] + zh[i + 1]);
+  // 单字也加入，提升召回
+  zh.forEach(c => grams.add(c));
+  // 英文 / 数字词
+  (clean.match(/[a-zA-Z0-9]+/g) || []).forEach(w => grams.add(w.toLowerCase()));
+  return grams;
+}
+
+/* Jaccard 相似度：交集 / 并集，模拟"向量距离越近越相关" */
+function similarity(a, b) {
+  let inter = 0;
+  a.forEach(x => { if (b.has(x)) inter++; });
+  const union = a.size + b.size - inter;
+  return union === 0 ? 0 : inter / union;
+}
+
+/* 检索：返回按相似度排序的全部打分 + 命中的 Top-K */
+function retrieve(question, topK) {
+  const qVec = embed(question);
+  const scored = knowledgeBase.map(doc => ({
+    ...doc,
+    score: similarity(qVec, embed(doc.text))
+  })).sort((a, b) => b.score - a.score);
+
+  // 只取分数 > 0 的前 K 条作为命中（过滤完全无关的噪声）
+  const hits = scored.filter(d => d.score > 0).slice(0, topK);
+  return { qVec, scored, hits };
+}
 
 /* =========================================================
  * 1. 工具（Agent 的"手脚"）
@@ -236,7 +388,7 @@ function mockLLM(prompt) {
     const lastObs = observations[observations.length - 1];
     if (needWeather) {
       const rainy = /雨/.test(lastObs);
-      const tip = rainy ? "记得带伞出门哦~" : "天气不错，无需带伞。";
+      const tip = weatherTip(rainy);
       return `Thought: 已经拿到天气信息，可以回复用户了。\nFinal Answer: ${lastObs}。${tip}`;
     }
     if (needTime) {
@@ -249,11 +401,32 @@ function mockLLM(prompt) {
     const weatherObs = observations.find(o => /℃/.test(o)) || "";
     const timeObs = observations.find(o => !/℃/.test(o)) || "";
     const rainy = /雨/.test(weatherObs);
-    const tip = rainy ? "在下雨，记得带伞~" : "天气不错。";
+    const tip = weatherTip(rainy);
     return `Thought: 信息齐全，汇总回复。\nFinal Answer: 现在是 ${timeObs}，天气：${weatherObs}。${tip}`;
   }
 
   return `Thought: 信息已足够。\nFinal Answer: 完成。`;
+}
+
+/* 根据是否下雨 + 长期记忆，给出个性化建议
+ * - 未启用 RAG / 未检索到相关记忆：给通用建议
+ * - 检索到个人偏好：基于偏好给出"千人千面"的建议（RAG 的价值所在）
+ */
+function weatherTip(rainy) {
+  const mem = (config.useRAG ? config._retrieved : []).map(r => r.text).join(" ");
+  if (mem) {
+    if (rainy && /折叠伞/.test(mem)) {
+      return "正在下雨——不过我记得你公司常备折叠伞，空手出门就行，到了再用。";
+    }
+    if (rainy && /居家办公/.test(mem)) {
+      return "正在下雨，若升级为暴雨红色预警，别忘了你可以按公司制度申请居家办公。";
+    }
+    if (!rainy && /怕热|防晒/.test(mem)) {
+      return "没下雨，但你怕热，气温偏高的话记得做好防晒、备好降温措施。";
+    }
+  }
+  // 通用兜底
+  return rainy ? "记得带伞出门哦~" : "天气不错，无需带伞。";
 }
 
 /* =========================================================
@@ -278,6 +451,21 @@ async function runAgent(userQuestion, render) {
   const toolList = Object.entries(tools)
     .map(([n, t]) => `- ${n}: ${t.desc}`).join("\n");
 
+  /* ★ 长期记忆（RAG）：在 ReAct 循环开始前先检索，把相关背景注入 prompt */
+  let memoryBlock = "";
+  config._retrieved = [];
+  if (config.useRAG) {
+    const { qVec, scored, hits } = retrieve(userQuestion, config.topK);
+    config._retrieved = hits;
+    render({ rag: true, qVec, scored, hits });
+    if (hits.length) {
+      memoryBlock =
+        "【长期记忆检索到的相关背景资料】\n" +
+        hits.map((h, i) => `${i + 1}. ${h.text}`).join("\n") +
+        "\n请在回答时优先参考以上资料。\n\n";
+    }
+  }
+
   let history =
 `你可以使用以下工具：
 ${toolList}
@@ -292,8 +480,11 @@ Action Input: 工具参数
 Thought: ...
 Final Answer: ...
 
-用户问题：${userQuestion}
+${memoryBlock}用户问题：${userQuestion}
 `;
+
+  // 短期记忆起点：初始 prompt（系统约定 + 可选的 RAG 注入 + 用户问题）整体载入
+  updateScratchpad(history, history);
 
   const MAX_TURN = 5;
   for (let i = 1; i <= MAX_TURN; i++) {
@@ -331,7 +522,9 @@ Final Answer: ...
       if (!tool) {
         // 工具不存在：当作 Observation 回灌，让 LLM 自己纠正
         const obs = `错误：未找到工具 ${parsed.action}`;
-        history += `\n${llmOut}\nObservation: ${obs}\n`;
+        const added = `\n${llmOut}\nObservation: ${obs}\n`;
+        history += added;
+        updateScratchpad(history, added);
         render({ turn: i, observation: obs, isError: true });
       } else {
         const toolResult = await withRetry(
@@ -348,7 +541,9 @@ Final Answer: ...
         const obs = toolResult.ok
           ? toolResult.value
           : `错误：工具调用失败（${toolResult.error.message}），已重试 ${config.maxRetry} 次`;
-        history += `\n${llmOut}\nObservation: ${obs}\n`;
+        const added = `\n${llmOut}\nObservation: ${obs}\n`;
+        history += added;
+        updateScratchpad(history, added);
         render({ turn: i, observation: obs, isError: !toolResult.ok });
       }
     } else {
@@ -369,6 +564,33 @@ const logEl = document.getElementById("log");
 const runBtn = document.getElementById("run");
 const qInput = document.getElementById("q");
 
+/* ===== 短期记忆 Scratchpad 可视化 ===== */
+const scratchPanel = document.getElementById("scratchPanel");
+const scratchPre = document.getElementById("scratchPre");
+const scratchMeta = document.getElementById("scratchMeta");
+const ctxFill = document.getElementById("ctxFill");
+const CTX_LIMIT = 512; // 假想的上下文窗口（token），故意调小以便直观看到"被撑爆"的压力
+
+// 粗略 token 估算：演示用，约 1.2 字符/token
+function estTokens(s) { return Math.ceil(s.length / 1.2); }
+
+/* 每轮把最新的 history 渲染出来，新增部分黄色高亮 */
+function updateScratchpad(history, added) {
+  scratchPanel.style.display = "block";
+  const oldPart = history.slice(0, history.length - added.length);
+  scratchPre.innerHTML = esc(oldPart) + `<span class="scratch-new">${esc(added)}</span>`;
+  scratchPre.scrollTop = scratchPre.scrollHeight;
+
+  const tokens = estTokens(history);
+  const pct = Math.min(100, Math.round(tokens / CTX_LIMIT * 100));
+  scratchMeta.textContent =
+    `${history.length} 字符 ≈ ${tokens} tokens ｜ 上下文占用 ${pct}%（演示窗口上限 ${CTX_LIMIT}）`;
+  ctxFill.style.width = pct + "%";
+  ctxFill.style.background = pct >= 85
+    ? "linear-gradient(90deg, #f59e0b, #dc2626)"   // 接近撑爆 → 变红警示
+    : "linear-gradient(90deg, #22d3ee, #0891b2)";
+}
+
 function colorize(line) {
   if (line.startsWith("Thought:")) return `<span class="label">Thought:</span><span class="thought">${esc(line.slice(8))}</span>`;
   if (line.startsWith("Action:"))  return `<span class="label">Action:</span><span class="action">${esc(line.slice(7))}</span>`;
@@ -378,6 +600,41 @@ function colorize(line) {
 function esc(s) { return s.replace(/[&<>]/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;"}[c])); }
 
 function render(ev) {
+  // 长期记忆（RAG）检索可视化
+  if (ev.rag) {
+    const maxScore = Math.max(...ev.scored.map(d => d.score), 0.0001);
+    const hitIds = new Set(ev.hits.map(h => h.id));
+    const vecPreview = [...ev.qVec].slice(0, 18).join(" · ") + (ev.qVec.size > 18 ? " …" : "");
+
+    const items = ev.scored.map(d => {
+      const hit = hitIds.has(d.id);
+      const barW = Math.round((d.score / maxScore) * 80);
+      return `<div class="rag-item ${hit ? "hit" : ""}">
+        <span class="score">${d.score.toFixed(3)}</span>
+        <span class="bar" style="width:${barW}px"></span>
+        <span class="doc">${esc(d.text)}</span>
+        ${hit ? '<span class="badge">命中</span>' : ""}
+      </div>`;
+    }).join("");
+
+    const injectHtml = ev.hits.length
+      ? `<div class="inject"><b>↓ 注入 prompt 的资料（Top-${ev.hits.length}）：</b>\n${esc(ev.hits.map((h, i) => `${i + 1}. ${h.text}`).join("\n"))}</div>`
+      : `<div class="inject">未检索到相关资料（都低于阈值），本次不注入。</div>`;
+
+    logEl.insertAdjacentHTML("beforeend", `
+      <div class="rag">
+        <div class="tag">🔍 长期记忆检索（RAG）</div>
+        <div class="step">① 把问题向量化（特征集合）：</div>
+        <div class="vec">${esc(vecPreview)}</div>
+        <div class="step">② 在向量库中按相似度排序（共 ${ev.scored.length} 条知识）：</div>
+        ${items}
+        <div class="step">③ 取相关度最高的 Top-K 注入 prompt：</div>
+        ${injectHtml}
+      </div>
+    `);
+    return;
+  }
+
   // 重试通知
   if (ev.retry) {
     const tipText = ev.scope === "LLM"
@@ -425,9 +682,15 @@ runBtn.addEventListener("click", async () => {
   config.failTool = document.getElementById("failTool").checked;
   config.failLLMOnce = document.getElementById("failLLM").checked;
   config.maxRetry = parseInt(document.getElementById("maxRetry").value, 10) || 0;
+  config.useRAG = document.getElementById("useRAG").checked;
+  config.topK = parseInt(document.getElementById("topK").value, 10) || 1;
   config._llmFailedOnce = false; // 重置一次性触发器
+  config._retrieved = [];        // 重置检索结果
 
   logEl.innerHTML = "";
+  // 重置短期记忆面板
+  scratchPanel.style.display = "none";
+  scratchPre.innerHTML = "";
   runBtn.disabled = true;
   try { await runAgent(q, render); }
   finally { runBtn.disabled = false; }
