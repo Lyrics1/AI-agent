@@ -1,0 +1,17 @@
+{
+  "name": "agent-lab",
+  "version": "1.0.0",
+  "description": "从零手写 Agent 的实战练习项目",
+  "type": "module",
+  "scripts": {
+    "lesson1": "tsx src/lesson1-chat.ts",
+    "lesson2": "tsx src/lesson2-tool.ts",
+    "lesson3": "tsx src/lesson3-agent.ts",
+    "lesson4": "tsx src/lesson4-file-agent.ts"
+  },
+  "devDependencies": {
+    "tsx": "^4.19.2",
+    "typescript": "^5.7.2",
+    "@types/node": "^22.10.2"
+  }
+}
