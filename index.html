@@ -1,0 +1,261 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>AI Notes · Agent 学习笔记博客</title>
+<style>
+  :root {
+    --bg: #f6f8fa; --panel: #ffffff; --text: #1f2328; --muted: #636c76;
+    --border: #d8dee4; --primary: #0969da; --accent: #0891b2;
+    --shadow: 0 1px 3px rgba(0,0,0,.05), 0 6px 20px rgba(0,0,0,.05);
+  }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; padding: 0; }
+  body {
+    background: var(--bg); color: var(--text);
+    font-family: -apple-system, BlinkMacSystemFont, "PingFang SC", "Helvetica Neue",
+                 "Hiragino Sans GB", "Microsoft YaHei", "Segoe UI", sans-serif;
+    -webkit-font-smoothing: antialiased; line-height: 1.7;
+  }
+
+  /* ===== Hero ===== */
+  .hero {
+    background: linear-gradient(135deg, #0b3a66 0%, #0e7490 60%, #0891b2 100%);
+    color: #fff; padding: 64px 24px 56px; text-align: center;
+  }
+  .hero h1 { margin: 0 0 12px; font-size: 40px; letter-spacing: 1px; }
+  .hero p { margin: 0 auto; max-width: 620px; font-size: 16px; opacity: .92; }
+  .hero .links { margin-top: 24px; display: flex; gap: 12px; justify-content: center; flex-wrap: wrap; }
+  .hero .links a {
+    display: inline-flex; align-items: center; gap: 6px;
+    padding: 9px 18px; border-radius: 24px; font-size: 14px;
+    text-decoration: none; transition: all .2s ease;
+  }
+  .hero .links a.primary { background: #fff; color: #0e7490; font-weight: 600; }
+  .hero .links a.ghost { background: rgba(255,255,255,.14); color: #fff; border: 1px solid rgba(255,255,255,.4); }
+  .hero .links a:hover { transform: translateY(-2px); }
+
+  /* ===== 容器 ===== */
+  .wrap { max-width: 1080px; margin: -28px auto 0; padding: 0 24px 60px; }
+
+  /* ===== 工具条 ===== */
+  .toolbar {
+    background: var(--panel); border: 1px solid var(--border);
+    border-radius: 12px; box-shadow: var(--shadow);
+    padding: 16px 20px; margin-bottom: 28px;
+    display: flex; gap: 14px; align-items: center; flex-wrap: wrap;
+  }
+  .toolbar input {
+    flex: 1; min-width: 200px; padding: 10px 14px;
+    border: 1px solid var(--border); border-radius: 8px; font-size: 14px;
+  }
+  .toolbar input:focus { outline: none; border-color: var(--primary); }
+  .filters { display: flex; gap: 8px; flex-wrap: wrap; }
+  .filters button {
+    padding: 7px 14px; border: 1px solid var(--border); background: #fff;
+    border-radius: 20px; font-size: 13px; cursor: pointer; color: var(--muted);
+    transition: all .15s ease;
+  }
+  .filters button.active, .filters button:hover {
+    background: var(--accent); color: #fff; border-color: var(--accent);
+  }
+
+  /* ===== 卡片网格 ===== */
+  .grid {
+    display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+    gap: 18px;
+  }
+  .card {
+    background: var(--panel); border: 1px solid var(--border);
+    border-radius: 12px; box-shadow: var(--shadow);
+    padding: 22px 22px 18px; display: flex; flex-direction: column;
+    text-decoration: none; color: inherit; transition: all .2s ease;
+    position: relative; overflow: hidden;
+  }
+  .card::before {
+    content: ""; position: absolute; left: 0; top: 0; bottom: 0; width: 4px;
+    background: var(--accent); opacity: 0; transition: opacity .2s ease;
+  }
+  .card:hover { transform: translateY(-3px); box-shadow: 0 8px 28px rgba(0,0,0,.1); border-color: #b9c2cc; }
+  .card:hover::before { opacity: 1; }
+  .card .cat {
+    font-size: 11px; color: var(--accent); font-weight: 700;
+    letter-spacing: .5px; text-transform: uppercase; margin-bottom: 8px;
+  }
+  .card h3 { margin: 0 0 10px; font-size: 18px; line-height: 1.4; }
+  .card p { margin: 0 0 16px; font-size: 13.5px; color: var(--muted); flex: 1; }
+  .card .tags { display: flex; gap: 6px; flex-wrap: wrap; }
+  .card .tags span {
+    font-size: 11px; background: #eef2f6; color: #57606a;
+    padding: 2px 9px; border-radius: 10px;
+  }
+  .card .arrow { margin-top: 14px; font-size: 13px; color: var(--primary); font-weight: 600; }
+
+  .empty { text-align: center; color: var(--muted); padding: 40px; grid-column: 1 / -1; }
+
+  /* ===== 特色入口 ===== */
+  .section-title {
+    font-size: 14px; color: var(--muted); font-weight: 700;
+    letter-spacing: 1px; text-transform: uppercase;
+    margin: 40px 0 16px; display: flex; align-items: center; gap: 10px;
+  }
+  .section-title::after { content: ""; flex: 1; height: 1px; background: var(--border); }
+
+  .feature-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 16px; }
+  .feature {
+    background: linear-gradient(135deg, #fff 0%, #f0f9ff 100%);
+    border: 1px solid #bae6fd; border-radius: 12px; padding: 20px;
+    text-decoration: none; color: inherit; transition: all .2s ease; display: block;
+  }
+  .feature:hover { transform: translateY(-3px); box-shadow: var(--shadow); }
+  .feature .emoji { font-size: 26px; }
+  .feature h4 { margin: 8px 0 6px; font-size: 16px; }
+  .feature p { margin: 0; font-size: 13px; color: var(--muted); }
+
+  footer {
+    text-align: center; color: var(--muted); font-size: 13px;
+    padding: 30px 20px; border-top: 1px solid var(--border); margin-top: 40px;
+  }
+  footer a { color: var(--primary); text-decoration: none; }
+
+  @media (max-width: 640px) {
+    .hero h1 { font-size: 30px; }
+    .wrap { padding: 0 14px 40px; }
+  }
+</style>
+</head>
+<body>
+
+<div class="hero">
+  <h1>AI Notes</h1>
+  <p>从 0 到 1 理解并手写 Agent —— 原理、实战与可交互 Demo。一份给前端工程师的 AI Agent 学习笔记。</p>
+  <div class="links">
+    <a class="primary" href="agent-lab/web-demo/index.html">▶ 体验交互 Demo</a>
+    <a class="ghost" href="https://github.com/Lyrics1/AI-MANAGES" target="_blank">★ GitHub 仓库</a>
+  </div>
+</div>
+
+<div class="wrap">
+  <div class="toolbar">
+    <input id="search" placeholder="🔍 搜索文章标题、简介、标签…" />
+    <div class="filters" id="filters"></div>
+  </div>
+
+  <div class="grid" id="grid"></div>
+
+  <div class="section-title">交互 & 可视化</div>
+  <div class="feature-grid">
+    <a class="feature" href="agent-lab/web-demo/index.html">
+      <div class="emoji">🤖</div>
+      <h4>最小 Agent Demo</h4>
+      <p>纯前端可视化 ReAct 循环：截断 → 解析 → 执行 → 回灌，含错误重试、长期记忆 RAG、短期记忆 Scratchpad。</p>
+    </a>
+    <a class="feature" href="docs/知识图谱.html">
+      <div class="emoji">🕸️</div>
+      <h4>知识图谱</h4>
+      <p>Agent 知识点关系的可视化图谱。</p>
+    </a>
+  </div>
+
+  <footer>
+    由 <a href="https://github.com/Lyrics1/AI-MANAGES" target="_blank">Lyrics1/AI-MANAGES</a> 驱动 ·
+    使用 GitHub Pages 托管 · 纯静态零构建
+  </footer>
+</div>
+
+<script>
+  /* ===== 文章清单（新增笔记时在此追加一项即可） ===== */
+  const posts = [
+    {
+      file: "Agent学习路线.md",
+      title: "前端工程师从 0 到 1 搭建 Agent 学习路线",
+      desc: "面向有前端（JS/TS）背景的开发者，从理解原理到亲手搭建一个完整可用的 Agent 的完整路线图。",
+      tags: ["路线", "入门", "前端"], cat: "Agent"
+    },
+    {
+      file: "Agent入门学习笔记.md",
+      title: "Agent 入门学习笔记",
+      desc: "Agent 是什么、为什么需要它，到 ReAct、长短期 Memory、RAG 的系统化原理笔记，附交互 Demo。",
+      tags: ["原理", "ReAct", "RAG", "Memory"], cat: "Agent"
+    },
+    {
+      file: "Agent实战学习记录.md",
+      title: "Agent 实战学习记录",
+      desc: "从零手写一个 Agent 的全程记录。TypeScript + Node + 原生 fetch，刻意不用框架，看清本质。",
+      tags: ["实战", "手写", "TypeScript"], cat: "Agent"
+    },
+    {
+      file: "获取LLM-API指南.md",
+      title: "获取 LLM API 指南",
+      desc: "没有 API 也能开始学 Agent。零成本 / 低成本起步，OpenAI 兼容接口的选型与配置。",
+      tags: ["API", "DeepSeek", "工具"], cat: "资源"
+    },
+    {
+      file: "角色参考图抽取规则.md",
+      title: "角色参考图抽取规则",
+      desc: "小说 → 分镜 → 视频管线中，从文本识别角色并生成角色设定图提示词的规范流程。",
+      tags: ["AIGC", "规范", "管线"], cat: "其他"
+    },
+    {
+      file: "工具地址.md",
+      title: "常用工具地址",
+      desc: "在线工具集合速查。",
+      tags: ["工具", "速查"], cat: "资源"
+    }
+  ];
+
+  const gridEl = document.getElementById("grid");
+  const searchEl = document.getElementById("search");
+  const filtersEl = document.getElementById("filters");
+
+  // 分类按钮
+  const cats = ["全部", ...new Set(posts.map(p => p.cat))];
+  let activeCat = "全部";
+  cats.forEach(c => {
+    const btn = document.createElement("button");
+    btn.textContent = c;
+    if (c === "全部") btn.classList.add("active");
+    btn.addEventListener("click", () => {
+      activeCat = c;
+      filtersEl.querySelectorAll("button").forEach(b => b.classList.remove("active"));
+      btn.classList.add("active");
+      render();
+    });
+    filtersEl.appendChild(btn);
+  });
+
+  function readerUrl(file) {
+    return "docs/reader.html?doc=" + encodeURIComponent(file);
+  }
+
+  function render() {
+    const kw = searchEl.value.trim().toLowerCase();
+    const list = posts.filter(p => {
+      const catOk = activeCat === "全部" || p.cat === activeCat;
+      const text = (p.title + p.desc + p.tags.join(" ")).toLowerCase();
+      const kwOk = !kw || text.includes(kw);
+      return catOk && kwOk;
+    });
+
+    if (!list.length) {
+      gridEl.innerHTML = '<div class="empty">没有匹配的文章 🙈</div>';
+      return;
+    }
+
+    gridEl.innerHTML = list.map(p => `
+      <a class="card" href="${readerUrl(p.file)}">
+        <div class="cat">${p.cat}</div>
+        <h3>${p.title}</h3>
+        <p>${p.desc}</p>
+        <div class="tags">${p.tags.map(t => `<span>${t}</span>`).join("")}</div>
+        <div class="arrow">阅读全文 →</div>
+      </a>
+    `).join("");
+  }
+
+  searchEl.addEventListener("input", render);
+  render();
+</script>
+</body>
+</html>
